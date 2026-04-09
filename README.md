@@ -12,25 +12,43 @@ Next.js 16 frontend scaffold for the Job Fair platform.
 
 ## Fresh Frontend Setup
 
-1. Copy the env template:
+Use this when starting from zero in a new clone.
 
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Set `NEXT_PUBLIC_API_URL=http://localhost:4000` in `.env`.
-
-3. Install workspace dependencies from the root if you have not already:
+1. Install dependencies from the workspace root:
 
    ```bash
    pnpm install
    ```
 
-4. Start the frontend:
+2. Create the frontend env file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Set the API base URL in `.env` file:
+
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:4000
+   ```
+
+4. Make sure the backend is running before you test authenticated pages.
+
+5. Start the frontend:
 
    ```bash
    pnpm dev
    ```
+
+## First Run Checklist
+
+After the app starts, confirm these routes load without errors:
+
+- `http://localhost:3000`
+- `http://localhost:3000/login`
+- `http://localhost:3000/register`
+
+If you are testing authenticated flows, also confirm the backend is available at `http://localhost:4000/api/v1/health`.
 
 ## Frontend Scripts
 
