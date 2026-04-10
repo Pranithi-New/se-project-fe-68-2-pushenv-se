@@ -1,12 +1,5 @@
-import { AuthCard } from "@/components/shared/AuthCard";
+import { RegisterForm } from "@/components/shared/RegisterForm";
 
 export default function RegisterPage() {
-  return (
-    <AuthCard
-      title="Register"
-      description="Public self-registration scaffold for user accounts."
-      fields={["Name", "Email", "Password", "Confirm Password"]}
-      footerLink={{ href: "/login", label: "Already have an account?" }}
-    />
-  );
+  return <RegisterForm />;
 }

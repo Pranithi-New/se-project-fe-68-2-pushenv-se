@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import "@fontsource/google-sans/400.css";
+import "@fontsource/google-sans/500.css";
+import "@fontsource/google-sans/600.css";
+import "@fontsource/google-sans/700.css";
 import { AppProviders } from "@/components/providers/AppProviders";
 import "./globals.css";
 
@@ -14,7 +18,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="th">
       <body>
         <AppProviders>{children}</AppProviders>
       </body>

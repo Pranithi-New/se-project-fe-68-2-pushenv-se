@@ -1,8 +1,8 @@
 export function Footer() {
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--card)]/70">
-      <div className="mx-auto max-w-6xl px-6 py-5 text-sm text-[var(--muted-foreground)]">
-        Scaffolded from the provided frontend, backend, and database specs.
+    <footer className="mt-auto bg-muted/40">
+      <div className="mx-auto max-w-5xl px-6 py-6 text-sm text-muted-foreground">
+        © 2026 SE Job Fair. All rights reserved.
       </div>
     </footer>
   );

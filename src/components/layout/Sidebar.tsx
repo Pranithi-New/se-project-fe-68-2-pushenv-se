@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type SidebarItem = {
   href: string;
   label: string;
@@ -11,21 +13,21 @@ export function Sidebar({
   items: SidebarItem[];
 }) {
   return (
-    <aside className="rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">
+    <aside className="rounded-lg bg-card p-4 shadow-md">
+      <p className="text-xs font-semibold uppercase text-muted-foreground">
         {role} workspace
       </p>
-      <div className="mt-6 grid gap-2">
+      <nav className="mt-4 grid gap-1">
         {items.map((item) => (
-          <a
+          <Link
             key={item.href}
-            className="rounded-2xl px-4 py-3 text-sm transition hover:bg-[var(--muted)]"
             href={item.href}
+            className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
           >
             {item.label}
-          </a>
+          </Link>
         ))}
-      </div>
+      </nav>
     </aside>
   );
 }
