@@ -73,6 +73,13 @@ export function Navbar() {
           {isMenuOpen && (
             <div className="absolute top-full left-0 mt-2 w-48 bg-background border border-border rounded-md shadow-lg py-2">
               <Link
+                href="/"
+                className="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
                 href="/admin/users"
                 className="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                 onClick={() => setIsMenuOpen(false)}

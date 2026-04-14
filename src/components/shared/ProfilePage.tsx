@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
@@ -133,7 +132,6 @@ export function ProfilePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Navbar />
         <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
           Loading…
         </div>
@@ -147,8 +145,6 @@ export function ProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <Navbar />
-
       <main className="mx-auto w-full max-w-4xl px-6 py-10 flex flex-col gap-6">
         {/* Identity card */}
         <div className="rounded-2xl bg-background p-6 flex items-center gap-5 shadow-md">

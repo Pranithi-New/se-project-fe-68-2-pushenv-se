@@ -5,6 +5,7 @@ import "@fontsource/google-sans/500.css";
 import "@fontsource/google-sans/600.css";
 import "@fontsource/google-sans/700.css";
 import { AppProviders } from "@/components/providers/AppProviders";
+import { Navbar } from "@/components/layout/Navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="th">
       <body>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          <Navbar />
+          {children}
+        </AppProviders>
       </body>
     </html>
   );
