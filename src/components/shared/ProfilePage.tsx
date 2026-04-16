@@ -47,7 +47,7 @@ export function ProfilePage() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const res = await api.get<ApiResponse<UserProfile>>("/auth/me");
+        const res = await api.get<ApiResponse<UserProfile>>("/users/me");
         setProfile(res.data);
         setName(res.data.name);
         setPhone(res.data.phone ?? "");
@@ -70,7 +70,7 @@ export function ProfilePage() {
   async function handleSaveInfo() {
     setSavingInfo(true);
     try {
-      const res = await api.put<ApiResponse<UserProfile>>("/auth/me", { name, phone });
+      const res = await api.put<ApiResponse<UserProfile>>("/users/me", { name, phone });
       setProfile(res.data);
       setEditingInfo(false);
       toast.success("Profile updated");
@@ -119,7 +119,7 @@ export function ProfilePage() {
     const formData = new FormData();
     formData.append("avatar", file);
     try {
-      const res = await api.put<ApiResponse<UserProfile>>("/auth/me", formData);
+      const res = await api.put<ApiResponse<UserProfile>>("/users/me", formData);
       setProfile(res.data);
       toast.success("Avatar updated");
     } catch {
