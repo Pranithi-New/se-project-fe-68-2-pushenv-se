@@ -1,3 +1,5 @@
+import { api } from "@/lib/api";
+import type { ApiResponse as BaseApiResponse } from "@/types/api";
 import EventSearch from "@/components/shared/EventSearch";
 import Pagination from "@/components/shared/Pagination";
 import { Suspense } from "react";
@@ -13,36 +15,21 @@ interface Event {
   banner: string | null;
 }
 
-interface ApiResponse {
-  success: boolean;
-  message: string;
-  data: {
-    events: Event[];
-    total: number;
-    page: number;
-    limit: number;
-  };
-}
+type PublishedEventsPayload = {
+  events: Event[];
+  total: number;
+  page: number;
+  limit: number;
+};
 
 async function getEvents(search?: string, page: number = 1, limit: number = 10) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
   try {
-    const url = new URL(`${apiUrl}/events`);
-    if (search) url.searchParams.append("search", search);
-    url.searchParams.append("page", page.toString());
-    url.searchParams.append("limit", limit.toString());
-
-    const res = await fetch(url.toString(), {
+    const res = await api.get<BaseApiResponse<PublishedEventsPayload>>("/events", {
+      params: { search, page, limit },
       cache: "no-store",
-    });
+    } as any); // Cast for cache as apiFetch might not support it in all types yet
 
-    if (!res.ok) {
-      console.error(`Failed to fetch events: ${res.status} ${res.statusText}`);
-      return { events: [], total: 0 };
-    }
-
-    const json: ApiResponse = await res.json();
-    return json.data;
+    return res.data;
   } catch (error) {
     console.error("Error fetching events from API:", error);
     return { events: [], total: 0 };
