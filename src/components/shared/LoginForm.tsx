@@ -9,8 +9,22 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { setToken } from "@/lib/auth";
@@ -21,11 +35,15 @@ const schema = z.object({
     .string()
     .min(1, "Email is required")
     .email("Invalid email")
-    .regex(/^[\x20-\x7E]+$/, { message: "Only English letters and standard symbols are allowed" }),
+    .regex(/^[\x20-\x7E]+$/, {
+      message: "Only English letters and standard symbols are allowed",
+    }),
   password: z
     .string()
     .min(1, "Password is required")
-    .regex(/^[\x20-\x7E]+$/, { message: "Only English letters and standard symbols are allowed" }),
+    .regex(/^[\x20-\x7E]+$/, {
+      message: "Only English letters and standard symbols are allowed",
+    }),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -42,10 +60,13 @@ export function LoginForm() {
 
   async function onSubmit(values: FormValues) {
     try {
-      const res = await api.post<ApiResponse<{ token: string }>>("/auth/login", {
-        email: values.email,
-        password: values.password,
-      });
+      const res = await api.post<ApiResponse<{ token: string }>>(
+        "/auth/login",
+        {
+          email: values.email,
+          password: values.password,
+        },
+      );
 
       setToken(res.data.token);
 
@@ -56,7 +77,7 @@ export function LoginForm() {
       if (role === "systemAdmin") {
         router.push("/admin/dashboard");
       } else if (role === "companyUser") {
-        router.push("/company/dashboard");
+        router.push("/events");
       } else {
         router.push("/events");
       }
@@ -65,7 +86,11 @@ export function LoginForm() {
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
       const message = errorObj?.message || "Login failed";
-      toast.error(message === "Invalid credentials" ? "Invalid email or password" : message);
+      toast.error(
+        message === "Invalid credentials"
+          ? "Invalid email or password"
+          : message,
+      );
     }
   }
 
@@ -74,12 +99,19 @@ export function LoginForm() {
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
-          <CardDescription>Access user, company, and admin accounts from one public entry point.</CardDescription>
+          <CardDescription>
+            Access user, company, and admin accounts from one public entry
+            point.
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4" noValidate>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="grid gap-4"
+              noValidate
+            >
               <FormField
                 control={form.control}
                 name="email"
@@ -87,7 +119,11 @@ export function LoginForm() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="you@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -101,14 +137,22 @@ export function LoginForm() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Your password" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="Your password"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <Button type="submit" className="mt-2 w-full" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                className="mt-2 w-full"
+                disabled={form.formState.isSubmitting}
+              >
                 {form.formState.isSubmitting ? "Signing in…" : "Continue"}
               </Button>
             </form>
@@ -118,7 +162,10 @@ export function LoginForm() {
         <CardFooter className="justify-center">
           <p className="text-muted-foreground text-sm">
             Need an account?{" "}
-            <Link href="/signup" className="text-foreground font-medium underline underline-offset-4">
+            <Link
+              href="/signup"
+              className="text-foreground font-medium underline underline-offset-4"
+            >
               Sign up
             </Link>
           </p>
