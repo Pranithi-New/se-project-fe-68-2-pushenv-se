@@ -9,7 +9,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { getToken } from "@/lib/auth";
-import { resolveAssetUrl, formatDateRange, formatTime } from "@/lib/event-utils";
+import {
+  resolveAssetUrl,
+  formatDateRange,
+  formatTime,
+} from "@/lib/event-utils";
 import type { ApiResponse } from "@/types/api";
 import type {
   PublicEventSummary,
@@ -30,15 +34,20 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
   const [saving, setSaving] = useState(false);
   const [accessLoaded, setAccessLoaded] = useState(false);
   const [accessRole, setAccessRole] = useState<string | null>(null);
-  const [registrationStatusLoading, setRegistrationStatusLoading] = useState(true);
-  const [registeredFromServer, setRegisteredFromServer] = useState<boolean | null>(null);
+  const [registrationStatusLoading, setRegistrationStatusLoading] =
+    useState(true);
+  const [registeredFromServer, setRegisteredFromServer] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     let active = true;
 
     async function loadEvent() {
       try {
-        const res = await api.get<ApiResponse<PublicEventDetail>>(`/events/${eventId}`);
+        const res = await api.get<ApiResponse<PublicEventDetail>>(
+          `/events/${eventId}`,
+        );
         const foundEvent = res.data;
 
         let companies: PublicEventCompany[] = [];
@@ -106,9 +115,9 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
       setRegistrationStatusLoading(true);
 
       try {
-        const response = await api.get<ApiResponse<EventRegistrationStatusPayload>>(
-          `/events/${eventId}/registration-status`,
-        );
+        const response = await api.get<
+          ApiResponse<EventRegistrationStatusPayload>
+        >(`/events/${eventId}/registration-status`);
 
         if (!active) return;
         setRegisteredFromServer(Boolean(response.data.registered));
@@ -130,14 +139,21 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
   }, [accessLoaded, accessRole, eventId]);
 
   const isJobSeeker = accessRole === "jobSeeker";
-  const isCompanyOrAdmin = accessRole === "companyUser" || accessRole === "systemAdmin";
-  const alreadyRegistered = Boolean(event?.viewerRegistered || registeredFromServer);
+  const isCompanyOrAdmin =
+    accessRole === "companyUser" || accessRole === "systemAdmin";
+  const alreadyRegistered = Boolean(
+    event?.viewerRegistered || registeredFromServer,
+  );
   const registerButtonClass =
     "h-9 min-h-9 w-full whitespace-nowrap rounded-full bg-[#171717] px-5 text-[13px] font-medium text-[#FAFAFA]";
 
   async function handleRegister() {
     if (!isJobSeeker) {
-      toast.error(accessRole ? "Only user accounts can register for events" : "Please sign in as a user");
+      toast.error(
+        accessRole
+          ? "Only user accounts can register for events"
+          : "Please sign in as a user",
+      );
       return;
     }
 
@@ -149,7 +165,9 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
     setSaving(true);
     try {
       await api.post(`/events/${eventId}/register`, {});
-      setEvent(current => (current ? { ...current, viewerRegistered: true } : current));
+      setEvent((current) =>
+        current ? { ...current, viewerRegistered: true } : current,
+      );
       setRegisteredFromServer(true);
       toast.success("Registered for event");
     } catch (err: unknown) {
@@ -159,7 +177,9 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
           : "Failed to register";
 
       if (message.toLowerCase().includes("already registered")) {
-        setEvent(current => (current ? { ...current, viewerRegistered: true } : current));
+        setEvent((current) =>
+          current ? { ...current, viewerRegistered: true } : current,
+        );
         setRegisteredFromServer(true);
       }
 
@@ -181,7 +201,9 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
         <div className="w-full max-w-md rounded-2xl bg-background p-6 shadow-md">
-          <h1 className="text-xl font-semibold tracking-[-1px]">Event not found</h1>
+          <h1 className="text-xl font-semibold tracking-[-1px]">
+            Event not found
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             The event may have been removed or is not published yet.
           </p>
@@ -203,7 +225,11 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
         <section className="overflow-hidden rounded-lg bg-background shadow-md">
           {bannerUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={bannerUrl} alt={event.name} className="h-[280px] w-full object-cover" />
+            <img
+              src={bannerUrl}
+              alt={event.name}
+              className="h-[280px] w-full object-cover"
+            />
           ) : (
             <div className="flex h-[280px] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
               No banner image
@@ -232,45 +258,74 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
               </div>
             </div>
 
-            <p className="text-[16px] leading-6 text-muted-foreground">{event.description}</p>
+            <p className="text-[16px] leading-6 text-muted-foreground">
+              {event.description}
+            </p>
           </div>
 
           <div className="flex justify-start">
             <div className="flex w-[156px] flex-col gap-2">
               {!accessLoaded ? (
-                <Button disabled className={`${registerButtonClass} opacity-60`}>
+                <Button
+                  disabled
+                  className={`${registerButtonClass} opacity-60`}
+                >
                   Checking access…
                 </Button>
               ) : !accessRole ? (
                 <>
-                  <Button asChild className={`${registerButtonClass} hover:bg-[#262626]`}>
+                  <Button
+                    asChild
+                    className={`${registerButtonClass} hover:bg-[#262626]`}
+                  >
                     <Link href="/signin">Sign in</Link>
                   </Button>
-                  <p className="whitespace-nowrap text-xs text-muted-foreground">Sign in to register.</p>
+                  <p className="whitespace-nowrap text-xs text-muted-foreground">
+                    Sign in to register.
+                  </p>
                 </>
               ) : isCompanyOrAdmin ? (
                 <>
-                  <Button disabled className={`${registerButtonClass} opacity-60`}>
+                  <Button
+                    disabled
+                    className={`${registerButtonClass} opacity-60`}
+                  >
                     Unavailable
                   </Button>
-                  <p className="whitespace-nowrap text-xs text-muted-foreground">User only.</p>
+                  <p className="whitespace-nowrap text-xs text-muted-foreground">
+                    User only.
+                  </p>
                 </>
               ) : registrationStatusLoading ? (
                 <>
-                  <Button disabled className={`${registerButtonClass} opacity-60`}>
+                  <Button
+                    disabled
+                    className={`${registerButtonClass} opacity-60`}
+                  >
                     Checking status…
                   </Button>
-                  <p className="whitespace-nowrap text-xs text-muted-foreground">Checking registration.</p>
+                  <p className="whitespace-nowrap text-xs text-muted-foreground">
+                    Checking registration.
+                  </p>
                 </>
               ) : alreadyRegistered ? (
                 <>
-                  <Button disabled className={`${registerButtonClass} opacity-60`}>
+                  <Button
+                    disabled
+                    className={`${registerButtonClass} opacity-60`}
+                  >
                     Registered
                   </Button>
-                  <p className="whitespace-nowrap text-xs text-muted-foreground">Already registered.</p>
+                  <p className="whitespace-nowrap text-xs text-muted-foreground">
+                    Already registered.
+                  </p>
                 </>
               ) : (
-                <Button onClick={handleRegister} disabled={saving} className={`${registerButtonClass} hover:bg-[#262626]`}>
+                <Button
+                  onClick={handleRegister}
+                  disabled={saving}
+                  className={`${registerButtonClass} hover:bg-[#262626]`}
+                >
                   {saving ? "Registering…" : "Register"}
                 </Button>
               )}
@@ -285,7 +340,9 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
 
           <div className="mt-5 grid gap-3">
             {event.companies.length === 0 ? (
-              <div className="text-center text-sm text-muted-foreground">No companies linked yet.</div>
+              <div className="text-center text-sm text-muted-foreground">
+                No companies linked yet.
+              </div>
             ) : (
               event.companies.map(({ company }) => {
                 const logoUrl = resolveAssetUrl(company.logo);
@@ -312,7 +369,7 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
 
                     <div className="min-w-0 flex-1">
                       <Link
-                        href={`/company/${company.id}?eventId=${eventId}`}
+                        href={`/companies/${company.id}?eventId=${eventId}`}
                         className="text-[16px] font-medium text-foreground underline underline-offset-4"
                       >
                         {company.companyUser.name}
