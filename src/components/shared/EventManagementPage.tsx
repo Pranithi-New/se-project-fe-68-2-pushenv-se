@@ -1,43 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarPlus, Pencil, Trash2, X } from "lucide-react";
+import { CalendarPlus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import type { ApiResponse } from "@/types/api";
 
-type Event = {
-  id: string;
-  name: string;
-  description: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  banner?: string | null;
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
-  _count: { registrations: number; companies: number };
-};
+import { AdminEvent } from "./EventModals/types";
+import { CreateModal } from "./EventModals/CreateModal";
+import { EditModal } from "./EventModals/EditModal";
+import { DeleteModal } from "./EventModals/DeleteModal";
+import { extractErrorMessage } from "./EventModals/utils";
 
 type EventsPayload = {
-  data: Event[];
+  data: AdminEvent[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
-};
-
-type EventForm = {
-  name: string;
-  description: string;
-  location: string;
-  startDate: string;
-  endDate: string;
 };
 
 const LIMIT = 10;
@@ -48,11 +30,6 @@ function formatDate(iso: string) {
     month: "short",
     year: "numeric",
   });
-}
-
-// Convert ISO/DB date to yyyy-MM-dd for <input type="date">
-function toDateInput(iso: string) {
-  return iso.slice(0, 10);
 }
 
 function buildPages(page: number, total: number): (number | "...")[] {
@@ -67,207 +44,18 @@ function buildPages(page: number, total: number): (number | "...")[] {
   return items;
 }
 
-function extractErrorMessage(err: unknown, fallback: string) {
-  return err && typeof err === "object" && "message" in err
-    ? String((err as { message: unknown }).message)
-    : fallback;
-}
-
-// ── Create Modal ──────────────────────────────────────────────────────────────
-
-function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState<EventForm>({ name: "", description: "", location: "", startDate: "", endDate: "" });
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await api.post("/admin/events", form);
-      toast.success("Event created");
-      onCreated();
-    } catch (err) {
-      toast.error(extractErrorMessage(err, "Failed to create event"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="rounded-2xl bg-background p-6 shadow-md w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-4 mb-5 border-b">
-          <p className="text-lg font-bold">Create Event</p>
-          <button onClick={onClose} className="hover:text-muted-foreground transition-colors">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <Label className="mb-1.5">Name</Label>
-            <Input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          </div>
-          <div>
-            <Label className="mb-1.5">Location</Label>
-            <Input required value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
-          </div>
-          <div>
-            <Label className="mb-1.5">Description</Label>
-            <textarea
-              required
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              rows={3}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="mb-1.5">Start Date</Label>
-              <Input required type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} />
-            </div>
-            <div>
-              <Label className="mb-1.5">End Date</Label>
-              <Input required type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Creating…" : "Create"}</Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ── Edit Modal ────────────────────────────────────────────────────────────────
-
-function EditModal({ event, onClose, onUpdated }: { event: Event; onClose: () => void; onUpdated: () => void }) {
-  const [form, setForm] = useState<EventForm>({
-    name: event.name,
-    description: event.description,
-    location: event.location,
-    startDate: toDateInput(event.startDate),
-    endDate: toDateInput(event.endDate),
-  });
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await api.put(`/admin/events/${event.id}`, form);
-      toast.success("Event updated");
-      onUpdated();
-    } catch (err) {
-      toast.error(extractErrorMessage(err, "Failed to update event"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="rounded-2xl bg-background p-6 shadow-md w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-4 mb-5 border-b">
-          <p className="text-lg font-bold">Edit Event</p>
-          <button onClick={onClose} className="hover:text-muted-foreground transition-colors">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <Label className="mb-1.5">Name</Label>
-            <Input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          </div>
-          <div>
-            <Label className="mb-1.5">Location</Label>
-            <Input required value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
-          </div>
-          <div>
-            <Label className="mb-1.5">Description</Label>
-            <textarea
-              required
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              rows={3}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="mb-1.5">Start Date</Label>
-              <Input required type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} />
-            </div>
-            <div>
-              <Label className="mb-1.5">End Date</Label>
-              <Input required type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ── Delete Modal ──────────────────────────────────────────────────────────────
-
-function DeleteModal({ event, onClose, onDeleted }: { event: Event; onClose: () => void; onDeleted: () => void }) {
-  const [deleting, setDeleting] = useState(false);
-
-  async function handleDelete() {
-    setDeleting(true);
-    try {
-      await api.delete(`/admin/events/${event.id}`);
-      toast.success("Event deleted");
-      onDeleted();
-    } catch (err) {
-      toast.error(extractErrorMessage(err, "Failed to delete event"));
-    } finally {
-      setDeleting(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="rounded-2xl bg-background p-6 shadow-md w-full max-w-sm mx-4">
-        <div className="flex items-center justify-between pb-4 mb-5 border-b">
-          <p className="text-lg font-bold">Delete Event</p>
-          <button onClick={onClose} className="hover:text-muted-foreground transition-colors">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <p className="text-sm text-muted-foreground mb-6">
-          Delete <span className="font-medium text-foreground">{event.name}</span>? This cannot be undone.
-        </p>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-            {deleting ? "Deleting…" : "Delete"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export function EventManagementPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState<string | null>(null);
 
   const [showCreate, setShowCreate] = useState(false);
-  const [editEvent, setEditEvent] = useState<Event | null>(null);
-  const [deleteEvent, setDeleteEvent] = useState<Event | null>(null);
+  const [editEvent, setEditEvent] = useState<AdminEvent | null>(null);
+  const [deleteEvent, setDeleteEvent] = useState<AdminEvent | null>(null);
 
   const fetchEvents = useCallback(async (p: number) => {
     setLoading(true);
@@ -288,7 +76,7 @@ export function EventManagementPage() {
     fetchEvents(page);
   }, [fetchEvents, page]);
 
-  async function togglePublish(event: Event) {
+  async function togglePublish(event: AdminEvent) {
     setPublishing(event.id);
     try {
       await api.patch(`/admin/events/${event.id}/publish`, {});
