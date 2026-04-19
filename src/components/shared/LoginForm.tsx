@@ -75,7 +75,7 @@ export function LoginForm() {
       const role = decoded.role;
 
       if (role === "systemAdmin") {
-        router.push("/admin/dashboard");
+        router.push("/events");
       } else if (role === "companyUser") {
         router.push("/events");
       } else {
