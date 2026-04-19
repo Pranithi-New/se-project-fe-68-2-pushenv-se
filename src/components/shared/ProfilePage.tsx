@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Pencil } from "lucide-react";
+import { Camera, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { clearToken } from "@/lib/auth";
 import type { ApiResponse } from "@/types/api";
 import { CompanyProfileSection } from "@/components/shared/CompanyProfile";
 
@@ -26,6 +27,45 @@ const ROLE_LABELS: Record<string, string> = {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
+function DeleteAccountModal({
+  onClose,
+  onDelete,
+  deleting,
+}: {
+  onClose: () => void;
+  onDelete: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="rounded-2xl bg-background p-6 shadow-md w-full max-w-sm mx-4">
+        <div className="flex items-center justify-between pb-4 mb-5 border-b">
+          <p className="text-lg font-bold">Delete Account</p>
+          <button
+            onClick={onClose}
+            disabled={deleting}
+            className="hover:text-muted-foreground transition-colors disabled:opacity-50"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="text-sm text-muted-foreground mb-6">
+          Are you sure you want to delete your account? This action cannot be
+          undone.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={onDelete} disabled={deleting}>
+            {deleting ? "Deleting…" : "Delete"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +82,9 @@ export function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPass, setSavingPass] = useState(false);
+
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"user" | "company">("user");
@@ -72,7 +115,10 @@ export function ProfilePage() {
   async function handleSaveInfo() {
     setSavingInfo(true);
     try {
-      const res = await api.put<ApiResponse<UserProfile>>("/auth/me", { name, phone });
+      const res = await api.put<ApiResponse<UserProfile>>("/auth/me", {
+        name,
+        phone,
+      });
       setProfile(res.data);
       setEditingInfo(false);
       toast.success("Profile updated");
@@ -131,6 +177,23 @@ export function ProfilePage() {
     e.target.value = "";
   }
 
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    try {
+      await api.delete("/users/me");
+      clearToken();
+      window.location.href = "/";
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Delete account failed";
+      toast.error(message);
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
@@ -148,7 +211,6 @@ export function ProfilePage() {
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
       <main className="mx-auto w-full max-w-4xl px-6 py-10 flex flex-col gap-6">
-
         {/* Tab switcher — เฉพาะ companyUser */}
         {profile.role === "companyUser" && (
           <div className="flex gap-1 border-b">
@@ -226,13 +288,23 @@ export function ProfilePage() {
                 <p className="text-lg font-bold">Personal Information</p>
                 {editingInfo ? (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={cancelInfo}>Cancel</Button>
-                    <Button size="sm" onClick={handleSaveInfo} disabled={savingInfo}>
+                    <Button size="sm" variant="outline" onClick={cancelInfo}>
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveInfo}
+                      disabled={savingInfo}
+                    >
                       {savingInfo ? "Saving…" : "Save"}
                     </Button>
                   </div>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => setEditingInfo(true)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditingInfo(true)}
+                  >
                     <Pencil className="h-3.5 w-3.5 mr-1.5" />
                     Edit
                   </Button>
@@ -242,7 +314,10 @@ export function ProfilePage() {
                 <div>
                   <p className="text-sm text-muted-foreground mb-1.5">Name</p>
                   {editingInfo ? (
-                    <Input value={name} onChange={(e) => setName(e.target.value)} />
+                    <Input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
                   ) : (
                     <p className="font-medium">{profile.name}</p>
                   )}
@@ -250,7 +325,11 @@ export function ProfilePage() {
                 <div>
                   <p className="text-sm text-muted-foreground mb-1.5">Phone</p>
                   {editingInfo ? (
-                    <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" />
+                    <Input
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Phone number"
+                    />
                   ) : (
                     <p className="font-medium">{profile.phone ?? "—"}</p>
                   )}
@@ -273,13 +352,24 @@ export function ProfilePage() {
                 </div>
                 {editingPass ? (
                   <div className="flex gap-2 shrink-0 ml-4">
-                    <Button size="sm" variant="outline" onClick={cancelPass}>Cancel</Button>
-                    <Button size="sm" onClick={handleChangePassword} disabled={savingPass}>
+                    <Button size="sm" variant="outline" onClick={cancelPass}>
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleChangePassword}
+                      disabled={savingPass}
+                    >
                       {savingPass ? "Saving…" : "Save"}
                     </Button>
                   </div>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => setEditingPass(true)} className="shrink-0 ml-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditingPass(true)}
+                    className="shrink-0 ml-4"
+                  >
                     <Pencil className="h-3.5 w-3.5 mr-1.5" />
                     Edit
                   </Button>
@@ -287,23 +377,67 @@ export function ProfilePage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1.5">Current Password</p>
-                  <Input type="password" placeholder="Enter your current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} disabled={!editingPass} />
+                  <p className="text-sm text-muted-foreground mb-1.5">
+                    Current Password
+                  </p>
+                  <Input
+                    type="password"
+                    placeholder="Enter your current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={!editingPass}
+                  />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1.5">New Password</p>
-                  <Input type="password" placeholder="Enter your new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={!editingPass} />
+                  <p className="text-sm text-muted-foreground mb-1.5">
+                    New Password
+                  </p>
+                  <Input
+                    type="password"
+                    placeholder="Enter your new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={!editingPass}
+                  />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1.5">Confirm New Password</p>
-                  <Input type="password" placeholder="Re-enter your new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={!editingPass} />
+                  <p className="text-sm text-muted-foreground mb-1.5">
+                    Confirm New Password
+                  </p>
+                  <Input
+                    type="password"
+                    placeholder="Re-enter your new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={!editingPass}
+                  />
                 </div>
               </div>
             </div>
+
+            {/* Delete Account */}
+            {profile.role === "jobSeeker" && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteModal(true)}
+                  disabled={deleting}
+                >
+                  Delete Account
+                </Button>
+              </div>
+            )}
           </>
         )}
-
       </main>
+
+      {showDeleteModal && (
+        <DeleteAccountModal
+          onClose={() => setShowDeleteModal(false)}
+          onDelete={handleDeleteAccount}
+          deleting={deleting}
+        />
+      )}
     </div>
   );
 }
