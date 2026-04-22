@@ -6,21 +6,22 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getToken, clearToken } from "@/lib/auth";
 import { api } from "@/lib/api";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const adminMenuRef = useRef<HTMLDivElement>(null);
 
   const isActivePath = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
 
   const getNavLinkClassName = (href: string) =>
-    `relative inline-flex pb-1 text-sm font-medium transition-colors duration-200 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-center after:bg-black after:transition-transform after:duration-300 after:ease-out ${
+    `relative inline-flex h-10 items-center text-sm font-medium transition-colors duration-200 after:absolute after:bottom-1 after:left-0 after:h-0.5 after:w-full after:origin-center after:bg-black after:transition-transform after:duration-300 after:ease-out ${
       isActivePath(href)
         ? "text-black after:scale-x-100"
         : "text-muted-foreground after:scale-x-0 hover:text-foreground hover:after:scale-x-100"
@@ -57,14 +58,15 @@ export function Navbar() {
     };
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsMenuOpen(false);
+      if (adminMenuRef.current && !adminMenuRef.current.contains(e.target as Node)) {
+        setIsAdminMenuOpen(false);
       }
     };
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setIsMenuOpen(false);
+        setIsAdminMenuOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -83,6 +85,11 @@ export function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    setIsAdminMenuOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout", {});
@@ -92,6 +99,7 @@ export function Navbar() {
       clearToken();
       setIsSignedIn(false);
       setIsAdmin(false);
+      setIsMobileMenuOpen(false);
       router.push("/signin");
     }
   };
@@ -100,11 +108,11 @@ export function Navbar() {
     <header className="sticky top-0 z-[100] border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Left: Logo with Drill-down Menu */}
-        <div className="relative" ref={menuRef}>
+        <div className="relative" ref={adminMenuRef}>
           {isAdmin ? (
             <>
               <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
                 className="text-sm font-bold tracking-widest uppercase hover:text-primary transition-colors flex items-center gap-2"
               >
                 Job Fair
@@ -118,19 +126,19 @@ export function Navbar() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`}
+                  className={`transition-transform duration-200 ${isAdminMenuOpen ? "rotate-180" : ""}`}
                 >
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               </button>
 
               {/* Drill-down Menu */}
-              {isMenuOpen && (
+              {isAdminMenuOpen && (
                 <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-xl py-2 animate-in fade-in slide-in-from-top-1">
                   <Link
                     href="/"
                     className="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={() => setIsAdminMenuOpen(false)}
                   >
                     Home
                   </Link>
@@ -138,21 +146,21 @@ export function Navbar() {
                   <Link
                     href="/admin/users"
                     className="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={() => setIsAdminMenuOpen(false)}
                   >
                     User Management
                   </Link>
                   <Link
                     href="/admin/companies"
                     className="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={() => setIsAdminMenuOpen(false)}
                   >
                     Company Management
                   </Link>
                   <Link
                     href="/admin/events"
                     className="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={() => setIsAdminMenuOpen(false)}
                   >
                     Event Management
                   </Link>
@@ -170,7 +178,20 @@ export function Navbar() {
         </div>
 
         {/* Right: Navigation + User actions */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center md:gap-6">
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-nav"
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
+
           {/* Navigation links - now on the right */}
           {isSignedIn && (
             <nav className="hidden md:flex items-center gap-4">
@@ -235,6 +256,28 @@ export function Navbar() {
           </div>
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div
+          id="mobile-nav"
+          className="absolute left-0 right-0 top-full z-50 border-t border-border bg-background/95 px-6 py-4 shadow-xl backdrop-blur-sm md:hidden"
+        >
+          <nav className="mx-auto flex max-w-6xl flex-col gap-2">
+            <Link
+              href="/events"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              Events
+            </Link>
+            <Link
+              href="/companies"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              Company
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

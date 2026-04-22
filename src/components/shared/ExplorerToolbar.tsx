@@ -60,9 +60,9 @@ export default function ExplorerToolbar({
   return (
     <div className="w-full flex flex-col gap-4">
       {hasTopRow && (
-        <div className="w-full flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="w-full flex flex-col gap-4 md:flex-row md:items-center">
           {searchPlaceholder && (
-            <div className="relative flex-1 md:max-w-[480px]">
+            <div className="relative w-full flex-1 min-w-0">
               <input
                 type="text"
                 placeholder={searchPlaceholder}
@@ -76,7 +76,7 @@ export default function ExplorerToolbar({
             </div>
           )}
 
-          <div className="flex items-center gap-4 self-end md:self-center">
+          <div className="flex shrink-0 items-center gap-4 self-end md:self-center">
             {total !== undefined && (
               <span className="text-slate-600 text-sm font-sans">
                 Showing <span className="font-semibold text-black">{total}</span> results
