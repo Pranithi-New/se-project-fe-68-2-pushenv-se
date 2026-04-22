@@ -32,6 +32,15 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const ALLOWED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
+
+function resolveAssetUrl(assetPath?: string | null) {
+  if (!assetPath) return null;
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+
+  return `${BASE_URL.replace(/\/+$/, "")}/${assetPath.replace(/^\/+/, "")}`;
+}
 
 function DeleteAccountModal({
   onClose,
@@ -224,14 +233,31 @@ export function ProfilePage() {
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
+      toast.error("Please upload a JPEG, PNG, or WebP image");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_SIZE_BYTES) {
+      toast.error("Image must be 5 MB or smaller");
+      e.target.value = "";
+      return;
+    }
+
     const formData = new FormData();
     formData.append("avatar", file);
     try {
       const res = await api.put<ApiResponse<UserProfile>>("/auth/me", formData);
       setProfile(res.data);
       toast.success("Avatar updated");
-    } catch {
-      toast.error("Avatar upload failed");
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Avatar upload failed";
+      toast.error(message);
     }
     e.target.value = "";
   }
@@ -277,10 +303,10 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <div className="mx-auto w-full max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch xl:gap-8">
           {/* Sidebar */}
-          <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-4">
+          <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-72 xl:w-80">
             {/* Identity card */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="h-20 bg-slate-900" />
@@ -290,7 +316,7 @@ export function ProfilePage() {
                     {profile.avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={`${BASE_URL}${profile.avatar}`}
+                        src={resolveAssetUrl(profile.avatar) ?? undefined}
                         alt={profile.name}
                         className="h-full w-full object-cover"
                       />
@@ -354,7 +380,7 @@ export function ProfilePage() {
           </aside>
 
           {/* Main content */}
-          <main className="flex-1 min-w-0 flex flex-col gap-5">
+          <main className="flex min-w-0 flex-1 flex-col gap-5">
             {profile.role === "companyUser" && activeTab === "company" ? (
               <CompanyProfileSection />
             ) : (
