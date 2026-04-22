@@ -3,39 +3,38 @@ import { type Company } from "@/types/company";
 
 export function CompanyCard({ company }: { company: Company }) {
   return (
-    <Link 
+    <Link
       href={`/companies/${company.id}`}
-      className="block w-full max-w-[280px] h-auto min-h-[316px] rounded-xl border border-[#E5E5E5] bg-white overflow-hidden hover:shadow-md transition-shadow"
+      className="block w-full rounded-xl outline outline-1 outline-offset-[-1px] outline-slate-200 bg-white overflow-hidden hover:shadow-md transition-shadow flex flex-col"
     >
-      <div className="w-full h-40 flex items-center justify-center bg-slate-50 relative overflow-hidden">
+      <div className="w-full h-44 flex items-center justify-center bg-slate-50 overflow-hidden">
         {company.logo ? (
-          <img 
-            src={company.logo} 
-            alt={company.name} 
+          <img
+            src={company.logo}
+            alt={company.name}
             className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-slate-200">
-            <span className="text-slate-400 font-medium">No Logo</span>
+            <span className="text-slate-400 text-xs font-medium uppercase tracking-wide">IMG</span>
           </div>
         )}
       </div>
-      <div className="px-5 pt-4 pb-6 flex flex-col justify-start items-start">
-        <div className="flex flex-col gap-2 w-full">
-          <h4 className="text-black text-lg font-medium font-sans leading-tight line-clamp-1">
-            {company.name}
-          </h4>
-          <p className="text-[#525252] text-sm font-normal font-sans leading-snug line-clamp-2 min-h-[40px]">
-            {company.description || "No description provided."}
-          </p>
+      <div className="p-5 flex flex-col gap-3 flex-1">
+        <div className="text-black text-base font-semibold font-sans leading-6 line-clamp-1">
+          {company.name}
         </div>
-        <div className="flex justify-between items-center w-full mt-3 pt-1">
-          <p className="text-[#A3A3A3] text-xs font-normal font-sans truncate pr-2">
-            {company.email}
-          </p>
-          <span className="text-[#525252] text-sm font-medium font-sans whitespace-nowrap">
-            Details
-          </span>
+        <div className="text-slate-500 text-sm font-normal font-sans leading-5 line-clamp-2 flex-1">
+          {company.description || "No description provided."}
+        </div>
+        <div className="flex flex-col gap-2 pt-3 border-t border-slate-100">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-slate-400 text-xs uppercase tracking-wide">Email</span>
+            <span className="text-slate-900 text-xs font-medium truncate">{company.email}</span>
+          </div>
+        </div>
+        <div className="mt-1 w-full text-center px-4 py-2 bg-slate-900 text-white text-xs font-medium rounded-lg hover:bg-slate-700 transition-colors">
+          See details
         </div>
       </div>
     </Link>
