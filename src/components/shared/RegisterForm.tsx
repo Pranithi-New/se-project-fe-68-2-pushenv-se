@@ -65,7 +65,7 @@ export function RegisterForm() {
 
   async function onSubmit(values: FormValues) {
     try {
-      await api.post<ApiResponse<{ token: string }>>("/auth/register", {
+      await api.post<ApiResponse<{ user: { id: string; role: string } }>>("/auth/register", {
         name: values.name,
         email: values.email,
         password: values.password,

@@ -1,4 +1,4 @@
-import { clearToken, getToken } from "@/lib/auth";
+import { clearUserInfo } from "@/lib/auth";
 
 const BASE_URL = `${(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/+$/, "")}/api/v1`;
 
@@ -18,21 +18,20 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     });
   }
 
-  const token = getToken();
   const headers = new Headers(init.headers);
-
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
 
   if (!headers.has("Content-Type") && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(url.toString(), { ...init, headers });
+  const response = await fetch(url.toString(), {
+    ...init,
+    headers,
+    credentials: "include",
+  });
 
   if (response.status === 401 && typeof window !== "undefined") {
-    clearToken();
+    clearUserInfo();
     window.location.href = "/signin";
   }
 

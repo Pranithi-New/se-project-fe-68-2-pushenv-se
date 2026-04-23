@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { getToken, clearToken } from "@/lib/auth";
+import { getUserInfo, clearUserInfo } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { LogOut, Menu, X } from "lucide-react";
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+
+  if (pathname.startsWith("/admin")) return null;
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
@@ -29,18 +31,9 @@ export function Navbar() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = getToken();
-      setIsSignedIn(!!token);
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          setIsAdmin(payload.role === "systemAdmin");
-        } catch (e) {
-          setIsAdmin(false);
-        }
-      } else {
-        setIsAdmin(false);
-      }
+      const user = getUserInfo();
+      setIsSignedIn(!!user);
+      setIsAdmin(user?.role === "systemAdmin");
     };
 
     checkAuth();
@@ -96,7 +89,7 @@ export function Navbar() {
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      clearToken();
+      clearUserInfo();
       setIsSignedIn(false);
       setIsAdmin(false);
       setIsMobileMenuOpen(false);

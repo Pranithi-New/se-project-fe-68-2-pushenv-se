@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { setUserInfo } from "@/lib/auth";
 import type { ApiResponse } from "@/types/api";
 
 const schema = z.object({
@@ -60,7 +59,7 @@ export function LoginForm() {
 
   async function onSubmit(values: FormValues) {
     try {
-      const res = await api.post<ApiResponse<{ token: string }>>(
+      const res = await api.post<ApiResponse<{ user: { id: string; role: string } }>>(
         "/auth/login",
         {
           email: values.email,
@@ -68,19 +67,8 @@ export function LoginForm() {
         },
       );
 
-      setToken(res.data.token);
-
-      // Decode role and redirect
-      const decoded: { role: string } = jwtDecode(res.data.token);
-      const role = decoded.role;
-
-      if (role === "systemAdmin") {
-        router.push("/events");
-      } else if (role === "companyUser") {
-        router.push("/events");
-      } else {
-        router.push("/events");
-      }
+      setUserInfo(res.data.user);
+      router.push("/events");
 
       toast.success("Welcome back!");
     } catch (err: unknown) {

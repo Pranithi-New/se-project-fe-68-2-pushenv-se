@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { clearToken } from "@/lib/auth";
+import { clearUserInfo } from "@/lib/auth";
 import type { ApiResponse } from "@/types/api";
 import { CompanyProfileSection } from "@/components/shared/CompanyProfile";
 
@@ -266,7 +266,7 @@ export function ProfilePage() {
     setDeleting(true);
     try {
       await api.delete("/users/me");
-      clearToken();
+      clearUserInfo();
       window.location.href = "/";
     } catch (err: unknown) {
       const message =

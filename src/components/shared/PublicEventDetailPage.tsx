@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CalendarDays, Clock3, MapPin, Search } from "lucide-react";
-import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { CompanyCard } from "@/components/shared/CompanyCard";
 import CompanyTableView from "@/components/shared/CompanyTableView";
 import { api } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { getUserInfo } from "@/lib/auth";
 import {
   resolveAssetUrl,
   formatDateRange,
@@ -22,7 +21,6 @@ import type {
   PublicEventSummary,
   PublicEventCompany,
   EventRegistrationStatusPayload,
-  AuthTokenPayload,
 } from "@/types/event";
 
 type PublicEventDetail = PublicEventSummary & {
@@ -106,20 +104,9 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
   }, [eventId]);
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      setAccessRole(null);
-      setAccessLoaded(true);
-      return;
-    }
-    try {
-      const decoded = jwtDecode<AuthTokenPayload>(token);
-      setAccessRole(decoded.role ?? null);
-    } catch {
-      setAccessRole(null);
-    } finally {
-      setAccessLoaded(true);
-    }
+    const user = getUserInfo();
+    setAccessRole(user?.role ?? null);
+    setAccessLoaded(true);
   }, []);
 
   useEffect(() => {
