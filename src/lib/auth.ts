@@ -8,7 +8,7 @@ export function getToken() {
 export function setToken(token: string) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(TOKEN_KEY, token);
-  document.cookie = `${TOKEN_KEY}=${token}; path=/; SameSite=Lax`;
+  document.cookie = `${TOKEN_KEY}=${token}; path=/; SameSite=Lax; Max-Age=604800`;
   window.dispatchEvent(new Event("auth-change"));
 }
 
