@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { getUserInfo, clearUserInfo } from "@/lib/auth";
+import { getUserInfo, clearUserInfo, setUserInfo } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { LogOut, Menu, X } from "lucide-react";
 
@@ -34,7 +34,22 @@ export function Navbar() {
       setIsAdmin(user?.role === "systemAdmin");
     };
 
+    const recoverSession = async () => {
+      const user = getUserInfo();
+      if (!user && !pathname.startsWith("/signin") && !pathname.startsWith("/signup")) {
+        try {
+          const res = await api.get<{ data: { id: string; role: string; name: string } }>("/auth/me");
+          if (res.data) {
+            setUserInfo({ id: res.data.id, role: res.data.role });
+          }
+        } catch {
+          // No session or error, ignore
+        }
+      }
+    };
+
     checkAuth();
+    recoverSession();
 
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
@@ -65,7 +80,7 @@ export function Navbar() {
       document.removeEventListener("keydown", handleEscape);
       window.removeEventListener("auth-change", checkAuth);
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -189,16 +204,80 @@ export function Navbar() {
           <nav className="mx-auto flex max-w-6xl flex-col gap-2">
             <Link
               href="/events"
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
+                isActivePath("/events") ? "text-foreground bg-accent" : "text-muted-foreground"
+              }`}
             >
               Events
             </Link>
             <Link
               href="/companies"
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
+                isActivePath("/companies") ? "text-foreground bg-accent" : "text-muted-foreground"
+              }`}
             >
               Company
             </Link>
+
+            {isSignedIn && isAdmin && (
+              <Link
+                href="/admin"
+                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
+                  isActivePath("/admin") ? "text-foreground bg-accent" : "text-muted-foreground"
+                }`}
+              >
+                Admin Panel
+              </Link>
+            )}
+
+            <div className="my-2 h-px bg-border" />
+
+            {isSignedIn ? (
+              <>
+                <Link
+                  href="/profile"
+                  className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
+                    isActivePath("/profile") ? "text-foreground bg-accent" : "text-muted-foreground"
+                  }`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="h-4 w-4"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/signin"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}

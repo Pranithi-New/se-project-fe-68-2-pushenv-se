@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { setUserInfo } from "@/lib/auth";
 import type { ApiResponse } from "@/types/api";
 
 const schema = z
@@ -65,15 +66,16 @@ export function RegisterForm() {
 
   async function onSubmit(values: FormValues) {
     try {
-      await api.post<ApiResponse<{ user: { id: string; role: string } }>>("/auth/register", {
+      const res = await api.post<ApiResponse<{ user: { id: string; role: string } }>>("/auth/register", {
         name: values.name,
         email: values.email,
         password: values.password,
         role: "jobSeeker",
       });
 
-      toast.success("Registration successful! Please login.");
-      router.push("/signin");
+      setUserInfo(res.data.user);
+      toast.success("Registration successful! Welcome.");
+      router.push("/events");
     } catch (err: unknown) {
       const errorObj = err as { statusCode?: number; message?: string };
       // Check if it's a 409 Conflict error
