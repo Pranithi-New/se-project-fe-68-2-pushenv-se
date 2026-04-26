@@ -48,23 +48,24 @@ function CompaniesExplorer() {
       />
 
       <div className="w-full">
-        {loading ? (
+        {loading && (
           <div className="w-full py-20 flex justify-center items-center">
             <div className="w-10 h-10 border-4 border-slate-200 border-t-black rounded-full animate-spin" />
           </div>
-        ) : mappedCompanies.length > 0 ? (
-          view === "table" ? (
-            <CompanyTableView companies={mappedCompanies} />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {mappedCompanies.map((company) => (
-                <CompanyCard key={company.id} company={company} />
-              ))}
-            </div>
-          )
-        ) : (
+        )}
+        {!loading && mappedCompanies.length === 0 && (
           <div className="w-full py-20 text-center text-slate-400 italic text-sm font-sans">
             No companies found.
+          </div>
+        )}
+        {!loading && mappedCompanies.length > 0 && view === "table" && (
+          <CompanyTableView companies={mappedCompanies} />
+        )}
+        {!loading && mappedCompanies.length > 0 && view !== "table" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {mappedCompanies.map((company) => (
+              <CompanyCard key={company.id} company={company} />
+            ))}
           </div>
         )}
       </div>
