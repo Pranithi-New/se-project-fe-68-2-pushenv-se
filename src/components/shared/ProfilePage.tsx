@@ -75,11 +75,11 @@ function useProfileData() {
   return { profile, setProfile, loading, name, setName, phone, setPhone };
 }
 
-function useInfoEditor(profile: UserProfile | null, setProfile: (p: UserProfile) => void) {
+function useInfoEditor(setProfile: (p: UserProfile) => void) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const save = async (name: string, phone: string) => {
+  const save = async (name: string, phone: string, onDone: () => void) => {
     setSaving(true);
     try {
       const res = await api.put<ApiResponse<UserProfile>>("/auth/me", { name, phone });
@@ -93,13 +93,7 @@ function useInfoEditor(profile: UserProfile | null, setProfile: (p: UserProfile)
     }
   };
 
-  const cancel = (resetName: () => void, resetPhone: () => void) => {
-    setEditing(false);
-    resetName();
-    resetPhone();
-  };
-
-  return { editing, setEditing, saving, save, cancel };
+  return { editing, setEditing, saving, save };
 }
 
 function usePasswordEditor() {
@@ -129,6 +123,47 @@ function usePasswordEditor() {
   };
 
   return { editing, setEditing, saving, save, reset, currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword };
+}
+
+function useAvatarUpload(setProfile: (p: UserProfile) => void) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("avatar", file);
+    try {
+      const res = await api.put<ApiResponse<UserProfile>>("/auth/me", formData);
+      setProfile(res.data);
+      toast.success("Avatar updated");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Avatar upload failed"));
+    }
+    e.target.value = "";
+  };
+
+  return { ref, handleChange };
+}
+
+function useDeleteAccount() {
+  const [deleting, setDeleting] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await api.delete("/users/me");
+      clearUserInfo();
+      window.location.href = "/";
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Delete account failed"));
+      setDeleting(false);
+      setShowModal(false);
+    }
+  };
+
+  return { deleting, showModal, setShowModal, handleDelete };
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
@@ -184,10 +219,10 @@ function DeleteAccountModal({ onClose, onDelete, deleting }: { onClose: () => vo
   );
 }
 
-function ProfileSidebar({ profile, initials, activeTab, setActiveTab, avatarInputRef, onAvatarChange }: {
+function ProfileSidebar({ profile, initials, activeTab, setActiveTab, avatarRef, onAvatarChange }: {
   profile: UserProfile; initials: string; activeTab: "user" | "company";
   setActiveTab: (tab: "user" | "company") => void;
-  avatarInputRef: React.RefObject<HTMLInputElement | null>;
+  avatarRef: React.RefObject<HTMLInputElement | null>;
   onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
@@ -201,10 +236,10 @@ function ProfileSidebar({ profile, initials, activeTab, setActiveTab, avatarInpu
                 ? <Image src={resolveAssetUrl(profile.avatar) ?? ""} alt={profile.name} className="h-full w-full object-cover" width={80} height={80} />
                 : <span className="text-2xl font-bold text-slate-500 select-none">{initials}</span>}
             </div>
-            <button type="button" onClick={() => avatarInputRef.current?.click()} className="absolute -bottom-1 -right-1 rounded-full bg-white border border-slate-200 shadow-sm p-1.5 hover:bg-slate-50 transition-colors">
+            <button type="button" onClick={() => avatarRef.current?.click()} className="absolute -bottom-1 -right-1 rounded-full bg-white border border-slate-200 shadow-sm p-1.5 hover:bg-slate-50 transition-colors">
               <Camera className="h-3 w-3 text-slate-600" />
             </button>
-            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={onAvatarChange} />
+            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={onAvatarChange} />
           </div>
           <p className="font-semibold text-slate-900 text-base leading-tight">{profile.name}</p>
           <p className="text-sm text-slate-400 mt-0.5 mb-3 truncate">{profile.email}</p>
@@ -227,44 +262,81 @@ function ProfileSidebar({ profile, initials, activeTab, setActiveTab, avatarInpu
   );
 }
 
+function PersonalInfoSection({ profile, name, phone, setName, setPhone, infoEditor }: {
+  profile: UserProfile; name: string; phone: string;
+  setName: (v: string) => void; setPhone: (v: string) => void;
+  infoEditor: ReturnType<typeof useInfoEditor>;
+}) {
+  const cancelEdit = () => {
+    infoEditor.setEditing(false);
+    setName(profile.name);
+    setPhone(profile.phone ?? "");
+  };
+
+  return (
+    <Section icon={<User className="h-4 w-4" />} title="Personal Information"
+      action={infoEditor.editing ? (
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={cancelEdit}>Cancel</Button>
+          <Button size="sm" onClick={() => infoEditor.save(name, phone, cancelEdit)} disabled={infoEditor.saving} className="bg-slate-900 text-white hover:bg-slate-700">{infoEditor.saving ? "Saving…" : "Save"}</Button>
+        </div>
+      ) : <Button size="sm" variant="outline" onClick={() => infoEditor.setEditing(true)}><Pencil className="h-3.5 w-3.5 mr-1.5" />Edit</Button>}
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <Field label="Full Name">
+          {infoEditor.editing ? <Input value={name} onChange={(e) => setName(e.target.value)} /> : <p className="text-sm font-medium text-slate-900">{profile.name}</p>}
+        </Field>
+        <Field label="Email"><p className="text-sm font-medium text-slate-900">{profile.email}</p></Field>
+        <Field label="Phone">
+          {infoEditor.editing ? <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" /> : <p className="text-sm font-medium text-slate-900">{profile.phone ?? "—"}</p>}
+        </Field>
+      </div>
+    </Section>
+  );
+}
+
+function PasswordSection({ passEditor }: { passEditor: ReturnType<typeof usePasswordEditor> }) {
+  return (
+    <Section icon={<KeyRound className="h-4 w-4" />} title="Password" subtitle="Update your login password"
+      action={passEditor.editing ? (
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={passEditor.reset}>Cancel</Button>
+          <Button size="sm" onClick={passEditor.save} disabled={passEditor.saving} className="bg-slate-900 text-white hover:bg-slate-700">{passEditor.saving ? "Saving…" : "Save"}</Button>
+        </div>
+      ) : <Button size="sm" variant="outline" onClick={() => passEditor.setEditing(true)}><Pencil className="h-3.5 w-3.5 mr-1.5" />Change</Button>}
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <Field label="Current Password"><Input type="password" placeholder="••••••••" value={passEditor.currentPassword} onChange={(e) => passEditor.setCurrentPassword(e.target.value)} disabled={!passEditor.editing} /></Field>
+        <Field label="New Password"><Input type="password" placeholder="••••••••" value={passEditor.newPassword} onChange={(e) => passEditor.setNewPassword(e.target.value)} disabled={!passEditor.editing} /></Field>
+        <Field label="Confirm New Password"><Input type="password" placeholder="••••••••" value={passEditor.confirmPassword} onChange={(e) => passEditor.setConfirmPassword(e.target.value)} disabled={!passEditor.editing} /></Field>
+      </div>
+    </Section>
+  );
+}
+
+function DangerZoneSection({ onDelete, deleting }: { onDelete: () => void; deleting: boolean }) {
+  return (
+    <Section icon={<Trash2 className="h-4 w-4 text-red-500" />} title="Danger Zone" subtitle="Permanent and irreversible actions">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-800">Delete your account</p>
+          <p className="text-xs text-slate-400 mt-0.5">All data will be permanently removed</p>
+        </div>
+        <Button variant="destructive" size="sm" onClick={onDelete} disabled={deleting} className="shrink-0 ml-4">Delete Account</Button>
+      </div>
+    </Section>
+  );
+}
+
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export function ProfilePage() {
   const { profile, setProfile, loading, name, setName, phone, setPhone } = useProfileData();
-  const infoEditor = useInfoEditor(profile, setProfile);
+  const infoEditor = useInfoEditor(setProfile);
   const passEditor = usePasswordEditor();
-  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const avatar = useAvatarUpload(setProfile);
+  const deleteAccount = useDeleteAccount();
   const [activeTab, setActiveTab] = useState<"user" | "company">("user");
-  const [deleting, setDeleting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("avatar", file);
-    try {
-      const res = await api.put<ApiResponse<UserProfile>>("/auth/me", formData);
-      setProfile(res.data);
-      toast.success("Avatar updated");
-    } catch (err) {
-      toast.error(getErrorMessage(err, "Avatar upload failed"));
-    }
-    e.target.value = "";
-  };
-
-  const handleDeleteAccount = async () => {
-    setDeleting(true);
-    try {
-      await api.delete("/users/me");
-      clearUserInfo();
-      window.location.href = "/";
-    } catch (err) {
-      toast.error(getErrorMessage(err, "Delete account failed"));
-      setDeleting(false);
-      setShowDeleteModal(false);
-    }
-  };
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -276,7 +348,6 @@ export function ProfilePage() {
   );
   if (!profile) return null;
 
-  const initials = getInitials(profile.name);
   const showCompany = profile.role === "companyUser" && activeTab === "company";
 
   return (
@@ -285,60 +356,30 @@ export function ProfilePage() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch xl:gap-8">
           <ProfileSidebar
             profile={profile}
-            initials={initials}
+            initials={getInitials(profile.name)}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            avatarInputRef={avatarInputRef}
-            onAvatarChange={handleAvatarChange}
+            avatarRef={avatar.ref}
+            onAvatarChange={avatar.handleChange}
           />
-
           <main className="flex min-w-0 flex-1 flex-col gap-5">
             {showCompany ? <CompanyProfileSection /> : (
               <>
-                <Section icon={<User className="h-4 w-4" />} title="Personal Information"
-                  action={infoEditor.editing ? (
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => infoEditor.cancel(() => setName(profile.name), () => setPhone(profile.phone ?? ""))}>Cancel</Button>
-                      <Button size="sm" onClick={() => infoEditor.save(name, phone)} disabled={infoEditor.saving} className="bg-slate-900 text-white hover:bg-slate-700">{infoEditor.saving ? "Saving…" : "Save"}</Button>
-                    </div>
-                  ) : <Button size="sm" variant="outline" onClick={() => infoEditor.setEditing(true)}><Pencil className="h-3.5 w-3.5 mr-1.5" />Edit</Button>}
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <Field label="Full Name">{infoEditor.editing ? <Input value={name} onChange={(e) => setName(e.target.value)} /> : <p className="text-sm font-medium text-slate-900">{profile.name}</p>}</Field>
-                    <Field label="Email"><p className="text-sm font-medium text-slate-900">{profile.email}</p></Field>
-                    <Field label="Phone">{infoEditor.editing ? <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" /> : <p className="text-sm font-medium text-slate-900">{profile.phone ?? "—"}</p>}</Field>
-                  </div>
-                </Section>
-
-                <Section icon={<KeyRound className="h-4 w-4" />} title="Password" subtitle="Update your login password"
-                  action={passEditor.editing ? (
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={passEditor.reset}>Cancel</Button>
-                      <Button size="sm" onClick={passEditor.save} disabled={passEditor.saving} className="bg-slate-900 text-white hover:bg-slate-700">{passEditor.saving ? "Saving…" : "Save"}</Button>
-                    </div>
-                  ) : <Button size="sm" variant="outline" onClick={() => passEditor.setEditing(true)}><Pencil className="h-3.5 w-3.5 mr-1.5" />Change</Button>}
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <Field label="Current Password"><Input type="password" placeholder="••••••••" value={passEditor.currentPassword} onChange={(e) => passEditor.setCurrentPassword(e.target.value)} disabled={!passEditor.editing} /></Field>
-                    <Field label="New Password"><Input type="password" placeholder="••••••••" value={passEditor.newPassword} onChange={(e) => passEditor.setNewPassword(e.target.value)} disabled={!passEditor.editing} /></Field>
-                    <Field label="Confirm New Password"><Input type="password" placeholder="••••••••" value={passEditor.confirmPassword} onChange={(e) => passEditor.setConfirmPassword(e.target.value)} disabled={!passEditor.editing} /></Field>
-                  </div>
-                </Section>
-
-                {profile.role === "jobSeeker" && (
-                  <Section icon={<Trash2 className="h-4 w-4 text-red-500" />} title="Danger Zone" subtitle="Permanent and irreversible actions">
-                    <div className="flex items-center justify-between">
-                      <div><p className="text-sm font-medium text-slate-800">Delete your account</p><p className="text-xs text-slate-400 mt-0.5">All data will be permanently removed</p></div>
-                      <Button variant="destructive" size="sm" onClick={() => setShowDeleteModal(true)} disabled={deleting} className="shrink-0 ml-4">Delete Account</Button>
-                    </div>
-                  </Section>
-                )}
+                <PersonalInfoSection profile={profile} name={name} phone={phone} setName={setName} setPhone={setPhone} infoEditor={infoEditor} />
+                <PasswordSection passEditor={passEditor} />
+                {profile.role === "jobSeeker" && <DangerZoneSection onDelete={() => deleteAccount.setShowModal(true)} deleting={deleteAccount.deleting} />}
               </>
             )}
           </main>
         </div>
       </div>
-      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} onDelete={handleDeleteAccount} deleting={deleting} />}
+      {deleteAccount.showModal && (
+        <DeleteAccountModal
+          onClose={() => deleteAccount.setShowModal(false)}
+          onDelete={deleteAccount.handleDelete}
+          deleting={deleteAccount.deleting}
+        />
+      )}
     </div>
   );
 }
