@@ -77,7 +77,7 @@ export function RegisterForm() {
     } catch (err: unknown) {
       const errorObj = err as { statusCode?: number; message?: string };
       // Check if it's a 409 Conflict error
-      if (errorObj?.statusCode === 409 || errorObj?.message?.toLowerCase().includes("email already exists")) {
+      if (errorObj?.statusCode === 409 || errorObj?.message?.toLowerCase().includes("email already in use")) {
         form.setError("email", { message: "Email already exists" });
       } else {
         const message = errorObj?.message || "Registration failed";
