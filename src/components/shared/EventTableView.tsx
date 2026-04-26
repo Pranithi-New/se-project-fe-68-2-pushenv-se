@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { EventType } from "./EventCard";
 
-export default function EventTableView({ events }: { events: EventType[] }) {
+export default function EventTableView({ events }: Readonly<{ events: EventType[] }>) {
   return (
     <div className="w-full overflow-x-auto rounded-xl outline outline-1 outline-offset-[-1px] outline-slate-200">
       <table className="w-full text-sm">

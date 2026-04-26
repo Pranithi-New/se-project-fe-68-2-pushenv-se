@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Company } from "@/types/company";
 
-export default function CompanyTableView({ companies }: { companies: Company[] }) {
+export default function CompanyTableView({ companies }: Readonly<{ companies: Company[] }>) {
   return (
     <div className="w-full overflow-x-auto rounded-xl outline outline-1 outline-offset-[-1px] outline-slate-200">
       <table className="w-full text-sm">

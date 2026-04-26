@@ -93,7 +93,7 @@ function roleBadgeClassName(role: AdminUser["role"]) {
   return "border-sky-200 bg-sky-50 text-sky-700";
 }
 
-function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function CreateModal({ onClose, onCreated }: Readonly<{ onClose: () => void; onCreated: () => void }>) {
   const [form, setForm] = useState<CreateForm>({ name: "", email: "", password: "", role: "jobSeeker" });
   const [saving, setSaving] = useState(false);
 

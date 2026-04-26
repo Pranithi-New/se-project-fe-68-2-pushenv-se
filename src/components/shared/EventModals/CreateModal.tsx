@@ -35,7 +35,7 @@ const createEventSchema = z.object({
 
 type CreateEventValues = z.infer<typeof createEventSchema>;
 
-export function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+export function CreateModal({ onClose, onCreated }: Readonly<{ onClose: () => void; onCreated: () => void }>) {
   const form = useForm<CreateEventValues>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {

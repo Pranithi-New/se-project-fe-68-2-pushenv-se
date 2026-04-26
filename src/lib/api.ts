@@ -54,7 +54,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     credentials: "include",
   });
 
-  if (response.status === 401 && typeof globalThis.window !== "undefined" && !path.startsWith("/auth/")) {
+  if (response.status === 401 && globalThis.window !== undefined && !path.startsWith("/auth/")) {
     clearUserInfo();
     globalThis.window.location.href = "/signin";
   }

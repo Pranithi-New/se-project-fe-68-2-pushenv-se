@@ -98,9 +98,9 @@ function FormControl({ ...props }: React.ComponentProps<"div">) {
   const child = React.Children.only(props.children as React.ReactElement);
   return React.cloneElement(child, {
     id: formItemId,
-    "aria-describedby": !error
-      ? formDescriptionId
-      : `${formDescriptionId} ${formMessageId}`,
+    "aria-describedby": error
+      ? `${formDescriptionId} ${formMessageId}`
+      : formDescriptionId,
     "aria-invalid": !!error,
   } as React.Attributes);
 }

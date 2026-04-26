@@ -10,7 +10,7 @@ export interface EventType {
   banner: string | null;
 }
 
-export default function EventCard({ event }: { event: EventType }) {
+export default function EventCard({ event }: Readonly<{ event: EventType }>) {
   return (
     <div className="bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-slate-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
       <img

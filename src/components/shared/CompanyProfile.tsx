@@ -141,9 +141,9 @@ function useDescEditor(
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function Section({ icon, title, subtitle, action, children }: {
+function Section({ icon, title, subtitle, action, children }: Readonly<{
   icon: React.ReactNode; title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode;
-}) {
+}>) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/60">
@@ -161,7 +161,7 @@ function Section({ icon, title, subtitle, action, children }: {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">{label}</label>
@@ -170,7 +170,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function CompanyLogo({ logo, onLogoClick }: { logo: string | null | undefined; onLogoClick: () => void }) {
+function CompanyLogo({ logo, onLogoClick }: Readonly<{ logo: string | null | undefined; onLogoClick: () => void }>) {
   return (
     <div className="relative shrink-0">
       <div className="h-16 w-16 rounded-xl overflow-hidden bg-white border-4 border-white shadow-md flex items-center justify-center">
@@ -261,11 +261,11 @@ export function CompanyProfileSection() {
         icon={<Building2 className="h-4 w-4" />}
         title="About"
         subtitle="Shown to job seekers on your profile"
-        action={!descEditor.editing ? (
+        action={descEditor.editing ? undefined : (
           <Button size="sm" variant="outline" onClick={() => descEditor.setEditing(true)}>
             <Pencil className="h-3.5 w-3.5 mr-1.5" />Edit
           </Button>
-        ) : undefined}
+        )}
       >
         <textarea
           value={description}

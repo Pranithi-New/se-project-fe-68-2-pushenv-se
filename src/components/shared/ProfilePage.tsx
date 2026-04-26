@@ -179,9 +179,9 @@ function useDeleteAccount() {
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function Section({ icon, title, subtitle, action, children }: {
+function Section({ icon, title, subtitle, action, children }: Readonly<{
   icon: React.ReactNode; title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode;
-}) {
+}>) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/60">
@@ -199,7 +199,7 @@ function Section({ icon, title, subtitle, action, children }: {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">{label}</label>
@@ -208,7 +208,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function DeleteAccountModal({ onClose, onDelete, deleting }: { onClose: () => void; onDelete: () => void; deleting: boolean }) {
+function DeleteAccountModal({ onClose, onDelete, deleting }: Readonly<{ onClose: () => void; onDelete: () => void; deleting: boolean }>) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="rounded-2xl bg-white p-6 shadow-2xl w-full max-w-sm mx-4 border border-red-100">
@@ -230,12 +230,12 @@ function DeleteAccountModal({ onClose, onDelete, deleting }: { onClose: () => vo
   );
 }
 
-function ProfileSidebar({ profile, initials, activeTab, setActiveTab, avatarRef, onAvatarChange }: {
+function ProfileSidebar({ profile, initials, activeTab, setActiveTab, avatarRef, onAvatarChange }: Readonly<{
   profile: UserProfile; initials: string; activeTab: "user" | "company";
   setActiveTab: (tab: "user" | "company") => void;
   avatarRef: React.RefObject<HTMLInputElement | null>;
   onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) {
+}>) {
   return (
     <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-72 xl:w-80">
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -273,11 +273,11 @@ function ProfileSidebar({ profile, initials, activeTab, setActiveTab, avatarRef,
   );
 }
 
-function PersonalInfoSection({ profile, name, phone, setName, setPhone, infoEditor }: {
+function PersonalInfoSection({ profile, name, phone, setName, setPhone, infoEditor }: Readonly<{
   profile: UserProfile; name: string; phone: string;
   setName: (v: string) => void; setPhone: (v: string) => void;
   infoEditor: ReturnType<typeof useInfoEditor>;
-}) {
+}>) {
   const cancelEdit = () => {
     infoEditor.setEditing(false);
     setName(profile.name);
@@ -306,7 +306,7 @@ function PersonalInfoSection({ profile, name, phone, setName, setPhone, infoEdit
   );
 }
 
-function PasswordSection({ passEditor }: { passEditor: ReturnType<typeof usePasswordEditor> }) {
+function PasswordSection({ passEditor }: Readonly<{ passEditor: ReturnType<typeof usePasswordEditor> }>) {
   return (
     <Section icon={<KeyRound className="h-4 w-4" />} title="Password" subtitle="Update your login password"
       action={passEditor.editing ? (
@@ -325,7 +325,7 @@ function PasswordSection({ passEditor }: { passEditor: ReturnType<typeof usePass
   );
 }
 
-function DangerZoneSection({ onDelete, deleting }: { onDelete: () => void; deleting: boolean }) {
+function DangerZoneSection({ onDelete, deleting }: Readonly<{ onDelete: () => void; deleting: boolean }>) {
   return (
     <Section icon={<Trash2 className="h-4 w-4 text-red-500" />} title="Danger Zone" subtitle="Permanent and irreversible actions">
       <div className="flex items-center justify-between">

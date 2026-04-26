@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { AdminEvent } from "./types";
 import { extractErrorMessage } from "./utils";
 
-export function DeleteModal({ event, onClose, onDeleted }: { event: AdminEvent; onClose: () => void; onDeleted: () => void }) {
+export function DeleteModal({ event, onClose, onDeleted }: Readonly<{ event: AdminEvent; onClose: () => void; onDeleted: () => void }>) {
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {

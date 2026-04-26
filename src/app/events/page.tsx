@@ -35,9 +35,9 @@ async function getEvents(search?: string, sort?: string, page: number = 1, limit
 
 export default async function EventExplorerPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams: Promise<{ search?: string; sort?: string; page?: string; view?: string }>;
-}) {
+}>) {
   const params = await searchParams;
   const search = params.search;
   const sort = params.sort || "newest";

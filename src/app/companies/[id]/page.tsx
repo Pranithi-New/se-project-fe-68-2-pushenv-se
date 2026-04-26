@@ -11,9 +11,9 @@ import { resolveAssetUrl } from "@/lib/event-utils";
 
 export default function CompanyDetailPage({
   params,
-}: {
+}: Readonly<{
   params: Promise<{ id: string }>;
-}) {
+}>) {
   const { id } = use(params);
   const { company, loading, error } = useCompany(id);
 

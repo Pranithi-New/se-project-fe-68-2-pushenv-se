@@ -37,9 +37,21 @@ const eventFormSchema = z.object({
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
 
+type CompanySearchResult = {
+  id: string;
+  companyUser: {
+    name: string;
+    email: string;
+  };
+};
+
+type EventCompany = {
+  company: CompanySearchResult;
+};
+
 // ── Component: Edit Event General Info ────────────────────────────────────────
 
-function EditEventGeneralInfo({ event, onClose, onUpdated }: { event: AdminEvent; onClose: () => void; onUpdated: () => void }) {
+function EditEventGeneralInfo({ event, onClose, onUpdated }: Readonly<{ event: AdminEvent; onClose: () => void; onUpdated: () => void }>) {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
@@ -142,13 +154,13 @@ function EditEventGeneralInfo({ event, onClose, onUpdated }: { event: AdminEvent
 
 // ── Component: Participating Companies ────────────────────────────────────────
 
-function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; onClose: () => void; onUpdated: () => void }) {
-  const [eventCompanies, setEventCompanies] = useState<any[]>([]);
+function EditEventCompanies({ event, onClose, onUpdated }: Readonly<{ event: AdminEvent; onClose: () => void; onUpdated: () => void }>) {
+  const [eventCompanies, setEventCompanies] = useState<EventCompany[]>([]);
   const [loadingComp, setLoadingComp] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<CompanySearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanySearchResult | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
@@ -157,7 +169,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
   const fetchEventCompanies = useCallback(async () => {
     setLoadingComp(true);
     try {
-      const res = await api.get<ApiResponse<any>>(`/events/${event.id}/companies`);
+      const res = await api.get<ApiResponse<EventCompany[]>>(`/events/${event.id}/companies`);
       setEventCompanies(res.data || []);
     } catch {
       toast.error("Failed to load participating companies");
@@ -178,7 +190,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await api.get<ApiResponse<{ data: any[] }>>("/admin/companies", {
+        const res = await api.get<ApiResponse<{ data: CompanySearchResult[] }>>("/admin/companies", {
           params: { name: searchTerm, limit: 10 }
         });
         setSearchResults(res.data.data || []);
@@ -298,7 +310,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
             <div className="text-sm text-muted-foreground py-4 text-center border rounded-md border-dashed">No companies assigned to this event</div>
           ) : (
             <div className="flex flex-wrap gap-2 pt-1 pb-4">
-              {eventCompanies.map((ec: any) => (
+              {eventCompanies.map((ec) => (
                 <div key={ec.company.id} className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 bg-muted/50 hover:bg-muted border rounded-full text-sm transition-colors shadow-sm">
                   <span className="font-medium whitespace-nowrap">{ec.company.companyUser.name}</span>
                   <button
@@ -333,7 +345,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
 
 // ── Main Layout Modal ─────────────────────────────────────────────────────────
 
-export function EditModal({ event, onClose, onUpdated }: { event: AdminEvent; onClose: () => void; onUpdated: () => void }) {
+export function EditModal({ event, onClose, onUpdated }: Readonly<{ event: AdminEvent; onClose: () => void; onUpdated: () => void }>) {
   const [activeTab, setActiveTab] = useState<"info" | "companies">("info");
 
   return (

@@ -32,7 +32,7 @@ function RegisterPanel({
   alreadyRegistered,
   saving,
   handleRegister,
-}: {
+}: Readonly<{
   accessLoaded: boolean;
   registrationStatusLoading: boolean;
   accessRole: string | null;
@@ -40,7 +40,7 @@ function RegisterPanel({
   alreadyRegistered: boolean;
   saving: boolean;
   handleRegister: () => void;
-}) {
+}>) {
   if (!accessLoaded || registrationStatusLoading) {
     return (
       <Button disabled className="w-full rounded-full opacity-60">
@@ -48,7 +48,7 @@ function RegisterPanel({
       </Button>
     );
   }
-  if (!accessRole) {
+  if (accessRole === null) {
     return (
       <div className="flex flex-col gap-2">
         <Button asChild className="w-full rounded-full bg-[#171717] text-[#FAFAFA] hover:bg-[#262626]">
@@ -102,7 +102,7 @@ type PublicEventDetail = PublicEventSummary & {
   companies: PublicEventCompany[];
 };
 
-export function PublicEventDetailPage({ eventId }: { eventId: string }) {
+export function PublicEventDetailPage({ eventId }: Readonly<{ eventId: string }>) {
   const [event, setEvent] = useState<PublicEventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
