@@ -70,11 +70,13 @@ function CompanyList({
           className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
         />
       </div>
-      {!companies.length ? (
+      {companies.length === 0 && (
         <p className="text-sm text-slate-500">No companies assigned yet.</p>
-      ) : !filtered.length ? (
+      )}
+      {companies.length > 0 && filtered.length === 0 && (
         <p className="text-sm text-slate-500">No companies match your search.</p>
-      ) : (
+      )}
+      {companies.length > 0 && filtered.length > 0 && (
         <div className="max-h-[480px] overflow-y-auto space-y-1.5">
           {filtered.map(link => (
             <div
@@ -495,7 +497,9 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
                     onClick={handleTogglePublish}
                     disabled={publishing}
                   >
-                    {publishing ? "Updating..." : event.isPublished ? "Unpublish" : "Publish"}
+                    {publishing && "Updating..."}
+                    {!publishing && event.isPublished && "Unpublish"}
+                    {!publishing && !event.isPublished && "Publish"}
                   </Button>
                   <Button
                     type="submit"

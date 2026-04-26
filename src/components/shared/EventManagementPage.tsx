@@ -136,9 +136,8 @@ export function EventManagementPage() {
       />
 
       <AdminTableWrapper>
-        {loading ? (
-          <AdminLoadingState label="Loading event roster..." />
-        ) : filteredEvents.length === 0 ? (
+        {loading && <AdminLoadingState label="Loading event roster..." />}
+        {!loading && filteredEvents.length === 0 && (
           <AdminEmptyState
             title={query ? "No matching events" : "No events found"}
             description={
@@ -147,7 +146,8 @@ export function EventManagementPage() {
                 : "Create an event to start building the admin event flow."
             }
           />
-        ) : (
+        )}
+        {!loading && filteredEvents.length > 0 && (
           <>
             <AdminTable>
               <AdminTableHead>

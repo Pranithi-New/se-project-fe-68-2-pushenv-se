@@ -221,9 +221,8 @@ export function CompanyManagementPage() {
       />
 
       <AdminTableWrapper>
-        {loading ? (
-          <AdminLoadingState label="Loading company data..." />
-        ) : filteredCompanies.length === 0 ? (
+        {loading && <AdminLoadingState label="Loading company data..." />}
+        {!loading && filteredCompanies.length === 0 && (
           <AdminEmptyState
             title={query ? "No matching companies" : "No companies found"}
             description={
@@ -232,7 +231,8 @@ export function CompanyManagementPage() {
                 : "Create a company to start managing its profile and jobs."
             }
           />
-        ) : (
+        )}
+        {!loading && filteredCompanies.length > 0 && (
           <>
             <AdminTable>
               <AdminTableHead>

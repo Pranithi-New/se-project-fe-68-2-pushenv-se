@@ -247,9 +247,8 @@ export function UserManagementPage() {
       />
 
       <AdminTableWrapper>
-        {loading ? (
-          <AdminLoadingState label="Loading account data..." />
-        ) : filteredUsers.length === 0 ? (
+        {loading && <AdminLoadingState label="Loading account data..." />}
+        {!loading && filteredUsers.length === 0 && (
           <AdminEmptyState
             title={query ? "No matching accounts" : "No users found"}
             description={
@@ -258,7 +257,8 @@ export function UserManagementPage() {
                 : "New accounts will appear here as soon as they are created."
             }
           />
-        ) : (
+        )}
+        {!loading && filteredUsers.length > 0 && (
           <>
             <AdminTable>
               <AdminTableHead>

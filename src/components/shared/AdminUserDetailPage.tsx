@@ -81,12 +81,10 @@ function extractErrorMessage(err: unknown, fallback: string) {
 
 function InitialAvatar({ name, role }: { name: string; role: AdminAccountDetail["role"] }) {
   const initial = name.trim()[0]?.toUpperCase() ?? "?";
-  const bg =
-    role === "systemAdmin"
-      ? "bg-slate-100 text-slate-700"
-      : role === "companyUser"
-        ? "bg-slate-100 text-slate-700"
-        : "bg-sky-100 text-sky-700";
+  let bg = "bg-sky-100 text-sky-700";
+  if (role === "systemAdmin" || role === "companyUser") {
+    bg = "bg-slate-100 text-slate-700";
+  }
   return (
     <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-bold", bg)}>
       {initial}

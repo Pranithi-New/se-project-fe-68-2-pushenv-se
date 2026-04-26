@@ -24,6 +24,79 @@ import type {
   EventRegistrationStatusPayload,
 } from "@/types/event";
 
+function RegisterPanel({
+  accessLoaded,
+  registrationStatusLoading,
+  accessRole,
+  isCompanyOrAdmin,
+  alreadyRegistered,
+  saving,
+  handleRegister,
+}: {
+  accessLoaded: boolean;
+  registrationStatusLoading: boolean;
+  accessRole: string | null;
+  isCompanyOrAdmin: boolean;
+  alreadyRegistered: boolean;
+  saving: boolean;
+  handleRegister: () => void;
+}) {
+  if (!accessLoaded || registrationStatusLoading) {
+    return (
+      <Button disabled className="w-full rounded-full opacity-60">
+        {!accessLoaded ? "Checking access…" : "Checking status…"}
+      </Button>
+    );
+  }
+  if (!accessRole) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Button asChild className="w-full rounded-full bg-[#171717] text-[#FAFAFA] hover:bg-[#262626]">
+          <Link href="/signin">Sign in to register</Link>
+        </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          New here?{" "}
+          <Link href="/signup" className="underline underline-offset-2">
+            Create an account
+          </Link>
+        </p>
+      </div>
+    );
+  }
+  if (isCompanyOrAdmin) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Button disabled className="w-full rounded-full opacity-50">
+          Registration unavailable
+        </Button>
+        <p className="text-center text-xs text-muted-foreground">For job seekers only.</p>
+      </div>
+    );
+  }
+  if (alreadyRegistered) {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 py-2.5 text-sm font-medium text-emerald-700">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          You&apos;re registered
+        </div>
+        <p className="text-center text-xs text-muted-foreground">See you at the event!</p>
+      </div>
+    );
+  }
+  return (
+    <Button
+      onClick={handleRegister}
+      disabled={saving}
+      className="w-full rounded-full bg-[#171717] text-[#FAFAFA] hover:bg-[#262626]"
+    >
+      {saving ? "Registering…" : "Register for this event"}
+    </Button>
+  );
+}
+
 type PublicEventDetail = PublicEventSummary & {
   viewerRegistered?: boolean;
   companies: PublicEventCompany[];
@@ -216,62 +289,7 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
   const rawBannerUrl = resolveAssetUrl(event.banner);
   const bannerUrl = (rawBannerUrl && (rawBannerUrl.startsWith("http://") || rawBannerUrl.startsWith("https://") || rawBannerUrl.startsWith("/"))) ? rawBannerUrl : "";
 
-  function RegisterPanel() {
-    if (!accessLoaded || registrationStatusLoading) {
-      return (
-        <Button disabled className="w-full rounded-full opacity-60">
-          {!accessLoaded ? "Checking access…" : "Checking status…"}
-        </Button>
-      );
-    }
-    if (!accessRole) {
-      return (
-        <div className="flex flex-col gap-2">
-          <Button asChild className="w-full rounded-full bg-[#171717] text-[#FAFAFA] hover:bg-[#262626]">
-            <Link href="/signin">Sign in to register</Link>
-          </Button>
-          <p className="text-center text-xs text-muted-foreground">
-            New here?{" "}
-            <Link href="/signup" className="underline underline-offset-2">
-              Create an account
-            </Link>
-          </p>
-        </div>
-      );
-    }
-    if (isCompanyOrAdmin) {
-      return (
-        <div className="flex flex-col gap-2">
-          <Button disabled className="w-full rounded-full opacity-50">
-            Registration unavailable
-          </Button>
-          <p className="text-center text-xs text-muted-foreground">For job seekers only.</p>
-        </div>
-      );
-    }
-    if (alreadyRegistered) {
-      return (
-        <div className="flex flex-col gap-2">
-          <div className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-50 py-2.5 text-sm font-medium text-emerald-700 border border-emerald-200">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            You&apos;re registered
-          </div>
-          <p className="text-center text-xs text-muted-foreground">See you at the event!</p>
-        </div>
-      );
-    }
-    return (
-      <Button
-        onClick={handleRegister}
-        disabled={saving}
-        className="w-full rounded-full bg-[#171717] text-[#FAFAFA] hover:bg-[#262626]"
-      >
-        {saving ? "Registering…" : "Register for this event"}
-      </Button>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -391,18 +409,21 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
                 )}
               </div>
 
-              {event.companies.length === 0 ? (
-                <div className="w-full py-20 text-center text-slate-400 italic text-sm font-sans">
+              {event.companies.length === 0 && (
+                <div className="w-full py-20 text-center text-sm italic text-slate-400 font-sans">
                   No companies linked yet.
                 </div>
-              ) : filteredCompanies.length === 0 ? (
-                <div className="w-full py-20 text-center text-slate-400 italic text-sm font-sans">
+              )}
+              {event.companies.length > 0 && filteredCompanies.length === 0 && (
+                <div className="w-full py-20 text-center text-sm italic text-slate-400 font-sans">
                   No companies match your search.
                 </div>
-              ) : companiesView === "table" ? (
+              )}
+              {event.companies.length > 0 && filteredCompanies.length > 0 && companiesView === "table" && (
                 <CompanyTableView companies={filteredCompanies} />
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              )}
+              {event.companies.length > 0 && filteredCompanies.length > 0 && companiesView !== "table" && (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
                   {filteredCompanies.map((company) => (
                     <CompanyCard key={company.id} company={company} />
                   ))}
@@ -451,7 +472,15 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
               </div>
 
               <div className="mt-5 border-t pt-4">
-                <RegisterPanel />
+                <RegisterPanel
+                  accessLoaded={accessLoaded}
+                  registrationStatusLoading={registrationStatusLoading}
+                  accessRole={accessRole}
+                  isCompanyOrAdmin={isCompanyOrAdmin}
+                  alreadyRegistered={alreadyRegistered}
+                  saving={saving}
+                  handleRegister={handleRegister}
+                />
               </div>
             </div>
           </aside>

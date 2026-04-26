@@ -242,7 +242,7 @@ export function AdminPagination({
         </Button>
         {pages.map((item, index) =>
           item === "..." ? (
-            <span key={`dots-${index}`} className="px-1 text-xs text-slate-400">
+            <span key={`dots-${String(pages[index + 1] ?? "end")}`} className="px-1 text-xs text-slate-400">
               …
             </span>
           ) : (
