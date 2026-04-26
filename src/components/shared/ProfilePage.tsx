@@ -38,8 +38,19 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 function resolveAssetUrl(assetPath?: string | null) {
   if (!assetPath) return null;
-  if (/^https?:\/\//i.test(assetPath)) return assetPath;
-  return `${BASE_URL.replace(/\/+$/, "")}/${assetPath.replace(/^\/+/, "")}`;
+  if (assetPath.startsWith("http://") || assetPath.startsWith("https://")) return assetPath;
+
+  let cleanBase = BASE_URL;
+  while (cleanBase.endsWith("/")) {
+    cleanBase = cleanBase.slice(0, -1);
+  }
+
+  let cleanPath = assetPath;
+  while (cleanPath.startsWith("/")) {
+    cleanPath = cleanPath.slice(1);
+  }
+
+  return `${cleanBase}/${cleanPath}`;
 }
 
 function getErrorMessage(err: unknown, fallback: string): string {
