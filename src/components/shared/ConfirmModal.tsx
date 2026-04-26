@@ -45,11 +45,16 @@ export function ConfirmModal({
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="mx-4 w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <button
+        type="button"
+        aria-label="Close modal background"
+        className="fixed inset-0 h-full w-full cursor-default border-none bg-black/50 outline-none"
+        onClick={onClose}
+        tabIndex={-1}
+      />
+      <div className="relative z-10 mx-4 w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div className="flex items-center gap-2.5">
             {variant === "danger" && (

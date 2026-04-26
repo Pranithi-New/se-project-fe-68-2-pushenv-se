@@ -80,11 +80,16 @@ export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], t
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[14vh]"
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="mx-4 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh]">
+      {/* Backdrop */}
+      <button
+        type="button"
+        aria-label="Close modal background"
+        className="fixed inset-0 h-full w-full cursor-default border-none bg-black/50 outline-none"
+        onClick={onClose}
+        tabIndex={-1}
+      />
+      <div className="relative z-10 mx-4 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
           <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
