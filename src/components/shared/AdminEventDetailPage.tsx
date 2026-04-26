@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -259,7 +260,11 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
     }
   }
 
-  const bannerUrl = useMemo(() => resolveAssetUrl(event?.banner), [event?.banner]);
+  const bannerUrl = useMemo(() => {
+    const url = resolveAssetUrl(event?.banner);
+    if (!url) return "";
+    return (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) ? url : "";
+  }, [event?.banner]);
 
   if (loading) return <AdminLoadingState label="Loading event..." />;
 
@@ -331,8 +336,7 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
 
         {bannerUrl ? (
           <div className="hidden h-16 w-28 shrink-0 overflow-hidden rounded-lg border border-slate-200 sm:block">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={bannerUrl} alt={event.name} className="h-full w-full object-cover" />
+            <Image src={bannerUrl} alt={event.name} className="h-full w-full object-cover" width={112} height={64} />
           </div>
         ) : null}
       </div>

@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Building2, Camera, Globe, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { resolveAssetUrl } from "@/lib/event-utils";
 import type { ApiResponse } from "@/types/api";
 
 type CompanyProfile = {
@@ -169,11 +171,18 @@ export function CompanyProfileSection() {
           <div className="relative shrink-0">
             <div className="h-16 w-16 rounded-xl overflow-hidden bg-white border-4 border-white shadow-md flex items-center justify-center">
               {profile.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`${BASE_URL}${profile.logo}`}
+                <Image
+                  src={
+                    profile.logo 
+                      ? (profile.logo.startsWith("http") || profile.logo.startsWith("/")) 
+                        ? resolveAssetUrl(profile.logo) ?? "" 
+                        : `${BASE_URL}${profile.logo}`
+                      : ""
+                  }
                   alt="Company logo"
                   className="h-full w-full object-cover"
+                  width={64}
+                  height={64}
                 />
               ) : (
                 <Building2 className="h-7 w-7 text-slate-400" />
@@ -250,7 +259,13 @@ export function CompanyProfileSection() {
               <p className="text-sm font-medium text-slate-900">
                 {profile.website ? (
                   <a
-                    href={profile.website}
+                    href={
+                      profile.website && (profile.website.startsWith("http://") || profile.website.startsWith("https://"))
+                        ? profile.website
+                        : profile.website
+                          ? `https://${profile.website}`
+                          : "#"
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-slate-700 hover:underline"

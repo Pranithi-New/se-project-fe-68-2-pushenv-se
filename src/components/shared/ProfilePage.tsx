@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, KeyRound, Pencil, Shield, Trash2, User, X } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
@@ -314,11 +315,18 @@ export function ProfilePage() {
                 <div className="relative inline-block mb-3">
                   <div className="h-20 w-20 rounded-2xl overflow-hidden bg-white border-4 border-white shadow-md flex items-center justify-center">
                     {profile.avatar ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={resolveAssetUrl(profile.avatar) ?? undefined}
+                      <Image
+                        src={
+                          profile.avatar 
+                            ? (profile.avatar.startsWith("http") || profile.avatar.startsWith("/")) 
+                              ? resolveAssetUrl(profile.avatar) ?? "" 
+                              : "" 
+                            : ""
+                        }
                         alt={profile.name}
                         className="h-full w-full object-cover"
+                        width={80}
+                        height={80}
                       />
                     ) : (
                       <span className="text-2xl font-bold text-slate-500 select-none">
