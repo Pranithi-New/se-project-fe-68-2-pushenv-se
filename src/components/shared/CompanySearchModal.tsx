@@ -81,8 +81,12 @@ export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], t
 
   return (
     <div
+      role="button"
+      tabIndex={-1}
+      aria-label="Close modal background"
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[14vh]"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onClose(); }}
     >
       <div className="mx-4 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}

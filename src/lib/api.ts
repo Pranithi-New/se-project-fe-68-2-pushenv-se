@@ -1,6 +1,23 @@
 import { clearUserInfo } from "@/lib/auth";
 
-const BASE_URL = `${(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/+$/, "")}/api/v1`;
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").endsWith("/")
+  ? `${(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").slice(0, -1)}/api/v1`
+  : `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/v1`;
+
+let csrfTokenCache: string | null = null;
+
+async function getCsrfToken() {
+  if (csrfTokenCache) return csrfTokenCache;
+  try {
+    const res = await fetch(BASE_URL + "/csrf-token", { credentials: "include" });
+    const data = await res.json();
+    csrfTokenCache = data.csrfToken;
+    return csrfTokenCache;
+  } catch (error) {
+    console.error("Failed to fetch CSRF token", error);
+    return null;
+  }
+}
 
 type FetchOptions = RequestInit & {
   params?: Record<string, string | number | boolean | undefined>;
@@ -22,6 +39,13 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   if (!headers.has("Content-Type") && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
+  }
+
+  if (init.method && !["GET", "HEAD", "OPTIONS"].includes(init.method.toUpperCase())) {
+    const token = await getCsrfToken();
+    if (token) {
+      headers.set("x-csrf-token", token);
+    }
   }
 
   const response = await fetch(url.toString(), {

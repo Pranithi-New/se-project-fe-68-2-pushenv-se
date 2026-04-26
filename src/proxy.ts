@@ -15,7 +15,7 @@ function decodeTokenPayload(token: string): TokenPayload | null {
   if (!payload) return null;
 
   try {
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const normalized = payload.replaceAll("-", "+").replaceAll("_", "/");
     const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
     const json = atob(padded);
     return JSON.parse(json) as TokenPayload;

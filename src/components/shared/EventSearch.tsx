@@ -41,8 +41,16 @@ export default function EventSearch({ basePath = "/events" }: EventSearchProps) 
         />
       </div>
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Search"
         className="w-5 p-0.5 inline-flex flex-col justify-center items-center cursor-pointer"
         onClick={handleSearch}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            handleSearch();
+          }
+        }}
       >
         <div className="w-4 h-4 relative overflow-hidden">
           <svg

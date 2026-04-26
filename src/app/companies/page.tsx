@@ -18,7 +18,7 @@ const SORT_OPTIONS = [
 function CompaniesExplorer() {
   const searchParams = useSearchParams();
 
-  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1", 10));
   const sortParam = searchParams.get("sort") || "newest";
   const searchParam = searchParams.get("search") || "";
   const view = searchParams.get("view") === "table" ? "table" : "card";
@@ -48,23 +48,24 @@ function CompaniesExplorer() {
       />
 
       <div className="w-full">
-        {loading ? (
+        {loading && (
           <div className="w-full py-20 flex justify-center items-center">
             <div className="w-10 h-10 border-4 border-slate-200 border-t-black rounded-full animate-spin" />
           </div>
-        ) : mappedCompanies.length > 0 ? (
-          view === "table" ? (
-            <CompanyTableView companies={mappedCompanies} />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {mappedCompanies.map((company) => (
-                <CompanyCard key={company.id} company={company} />
-              ))}
-            </div>
-          )
-        ) : (
+        )}
+        {!loading && mappedCompanies.length === 0 && (
           <div className="w-full py-20 text-center text-slate-400 italic text-sm font-sans">
             No companies found.
+          </div>
+        )}
+        {!loading && mappedCompanies.length > 0 && view === "table" && (
+          <CompanyTableView companies={mappedCompanies} />
+        )}
+        {!loading && mappedCompanies.length > 0 && view !== "table" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {mappedCompanies.map((company) => (
+              <CompanyCard key={company.id} company={company} />
+            ))}
           </div>
         )}
       </div>

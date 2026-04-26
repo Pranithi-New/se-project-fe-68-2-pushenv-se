@@ -42,7 +42,7 @@ export default async function EventExplorerPage({
   const search = params.search;
   const sort = params.sort || "newest";
   const view = params.view === "table" ? "table" : "card";
-  const currentPage = Math.max(1, parseInt(params.page || "1"));
+  const currentPage = Math.max(1, Number.parseInt(params.page || "1", 10));
   const limit = 10;
 
   const { events, total } = await getEvents(search, sort, currentPage, limit);

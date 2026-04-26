@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
@@ -108,7 +109,11 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
     }
   }
 
-  const logoUrl = useMemo(() => resolveAssetUrl(company?.logo), [company?.logo]);
+  const logoUrl = useMemo(() => {
+    const url = resolveAssetUrl(company?.logo);
+    if (!url) return "";
+    return (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) ? url : "";
+  }, [company?.logo]);
 
   if (loading) return <AdminLoadingState label="Loading company..." />;
 
@@ -140,8 +145,7 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
       <div className="flex items-center gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
           {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={company.companyUser.name} className="h-full w-full object-cover" />
+            <Image src={logoUrl} alt={company.companyUser.name} className="h-full w-full object-cover" width={44} height={44} />
           ) : (
             <Building2 className="h-5 w-5 text-slate-400" />
           )}
@@ -248,7 +252,11 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
                   <p className="text-[11px] font-semibold uppercase text-slate-400">Website</p>
                   {company.website ? (
                     <a
-                      href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
+                      href={
+                        company.website.startsWith("http://") || company.website.startsWith("https://")
+                          ? company.website
+                          : `https://${company.website}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-1 inline-block break-all text-sm text-slate-900 underline-offset-4 hover:underline"

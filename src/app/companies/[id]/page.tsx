@@ -175,15 +175,17 @@ export default function CompanyDetailPage({
                 </div>
               )}
 
-              {!hasEvents ? (
+              {!hasEvents && (
                 <div className="w-full py-20 text-center text-sm italic text-slate-400">
                   No participated events yet.
                 </div>
-              ) : filteredEvents.length === 0 ? (
+              )}
+              {hasEvents && filteredEvents.length === 0 && (
                 <div className="w-full py-20 text-center text-sm italic text-slate-400">
                   No events match your search.
                 </div>
-              ) : (
+              )}
+              {hasEvents && filteredEvents.length > 0 && (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   {filteredEvents.map((event) => (
                     <EventCard key={event.id} event={event} />

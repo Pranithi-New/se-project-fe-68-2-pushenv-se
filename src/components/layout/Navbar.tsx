@@ -12,7 +12,6 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  if (pathname.startsWith("/admin")) return null;
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -70,6 +69,8 @@ export function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  if (pathname.startsWith("/admin")) return null;
 
   const handleLogout = async () => {
     try {

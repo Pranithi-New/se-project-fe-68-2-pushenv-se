@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CalendarDays, Clock3, MapPin, Search } from "lucide-react";
 import { toast } from "sonner";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { CompanyCard } from "@/components/shared/CompanyCard";
 import CompanyTableView from "@/components/shared/CompanyTableView";
@@ -212,7 +213,8 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
     );
   }
 
-  const bannerUrl = resolveAssetUrl(event.banner);
+  const rawBannerUrl = resolveAssetUrl(event.banner);
+  const bannerUrl = (rawBannerUrl && (rawBannerUrl.startsWith("http://") || rawBannerUrl.startsWith("https://") || rawBannerUrl.startsWith("/"))) ? rawBannerUrl : "";
 
   function RegisterPanel() {
     if (!accessLoaded || registrationStatusLoading) {
@@ -276,11 +278,12 @@ export function PublicEventDetailPage({ eventId }: { eventId: string }) {
       {/* Hero banner */}
       <div className="relative h-[320px] w-full overflow-hidden bg-muted sm:h-[400px]">
         {bannerUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={bannerUrl}
             alt={event.name}
             className="h-full w-full object-cover"
+            fill
+            priority
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-600">

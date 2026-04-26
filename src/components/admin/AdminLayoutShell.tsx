@@ -120,8 +120,16 @@ export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {open && (
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close sidebar"
           className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden"
           onClick={() => setOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              setOpen(false);
+            }
+          }}
         />
       )}
 

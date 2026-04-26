@@ -253,8 +253,8 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
                   onFocus={() => {
                     // Trigger refetch of dropdown if searchTerm exists and click back in
                     if (searchTerm && searchResults.length === 0) {
-                      setSearchTerm(searchTerm + " "); // small hack to trigger effect
-                      setTimeout(() => setSearchTerm(searchTerm), 0);
+                      setSearchTerm(prev => prev + " ");
+                      setTimeout(() => setSearchTerm(prev => prev.trim()), 0);
                     }
                   }}
                 />
