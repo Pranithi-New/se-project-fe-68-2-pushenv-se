@@ -22,6 +22,33 @@ type CompanyProfile = {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function getErrorMessage(err: unknown): string {
+  if (err && typeof err === "object" && "message" in err) {
+    return String((err as { message: unknown }).message);
+  }
+  return "Update failed";
+}
+
+function getLogoUrl(logo: string | null | undefined): string {
+  if (!logo) return "";
+  if (logo.startsWith("http") || logo.startsWith("/")) {
+    return resolveAssetUrl(logo) ?? "";
+  }
+  return `${BASE_URL}${logo}`;
+}
+
+function getWebsiteUrl(website: string | null | undefined): string {
+  if (!website) return "#";
+  if (website.startsWith("http://") || website.startsWith("https://")) {
+    return website;
+  }
+  return `https://${website}`;
+}
+
+// ── Sub-components ──────────────────────────────────────────────────────────
+
 function Section({
   icon,
   title,
@@ -63,6 +90,43 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function CompanyLogo({ 
+  logo, 
+  onLogoClick 
+}: { 
+  logo: string | null | undefined; 
+  onLogoClick: () => void 
+}) {
+  const logoUrl = getLogoUrl(logo);
+  return (
+    <div className="relative shrink-0">
+      <div className="h-16 w-16 rounded-xl overflow-hidden bg-white border-4 border-white shadow-md flex items-center justify-center">
+        {logo ? (
+          <Image
+            src={logoUrl}
+            alt="Company logo"
+            className="h-full w-full object-cover"
+            width={64}
+            height={64}
+          />
+        ) : (
+          <Building2 className="h-7 w-7 text-slate-400" />
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onLogoClick}
+        className="absolute -bottom-1 -right-1 rounded-full bg-white border border-slate-200 shadow-sm p-1.5 hover:bg-slate-50 transition-colors"
+        aria-label="Change logo"
+      >
+        <Camera className="h-3 w-3 text-slate-600" />
+      </button>
+    </div>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
+
 export function CompanyProfileSection() {
   const [profile, setProfile] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,7 +157,7 @@ export function CompanyProfileSection() {
     fetchProfile();
   }, []);
 
-  async function handleSaveDetails() {
+  const handleSaveDetails = async () => {
     setSavingDetails(true);
     try {
       const res = await api.put<ApiResponse<CompanyProfile>>("/company/profile", {
@@ -103,18 +167,14 @@ export function CompanyProfileSection() {
       setProfile(res.data);
       setEditingDetails(false);
       toast.success("Company details updated");
-    } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "message" in err
-          ? String((err as { message: unknown }).message)
-          : "Update failed";
-      toast.error(message);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setSavingDetails(false);
     }
-  }
+  };
 
-  async function handleSaveDesc() {
+  const handleSaveDesc = async () => {
     setSavingDesc(true);
     try {
       const res = await api.put<ApiResponse<CompanyProfile>>("/company/profile", {
@@ -124,18 +184,14 @@ export function CompanyProfileSection() {
       setProfile(res.data);
       setEditingDesc(false);
       toast.success("Description updated");
-    } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "message" in err
-          ? String((err as { message: unknown }).message)
-          : "Update failed";
-      toast.error(message);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setSavingDesc(false);
     }
-  }
+  };
 
-  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
@@ -148,7 +204,7 @@ export function CompanyProfileSection() {
       toast.error("Logo upload failed");
     }
     e.target.value = "";
-  }
+  };
 
   if (loading) {
     return (
@@ -168,42 +224,8 @@ export function CompanyProfileSection() {
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="h-16 bg-gradient-to-br from-slate-800 to-slate-900" />
         <div className="px-6 pb-5 -mt-8 flex items-end gap-4">
-          <div className="relative shrink-0">
-            <div className="h-16 w-16 rounded-xl overflow-hidden bg-white border-4 border-white shadow-md flex items-center justify-center">
-              {profile.logo ? (
-                <Image
-                  src={
-                    profile.logo 
-                      ? (profile.logo.startsWith("http") || profile.logo.startsWith("/")) 
-                        ? resolveAssetUrl(profile.logo) ?? "" 
-                        : `${BASE_URL}${profile.logo}`
-                      : ""
-                  }
-                  alt="Company logo"
-                  className="h-full w-full object-cover"
-                  width={64}
-                  height={64}
-                />
-              ) : (
-                <Building2 className="h-7 w-7 text-slate-400" />
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => logoInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 rounded-full bg-white border border-slate-200 shadow-sm p-1.5 hover:bg-slate-50 transition-colors"
-              aria-label="Change logo"
-            >
-              <Camera className="h-3 w-3 text-slate-600" />
-            </button>
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleLogoChange}
-            />
-          </div>
+          <CompanyLogo logo={profile.logo} onLogoClick={() => logoInputRef.current?.click()} />
+          <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
           <div className="mb-1">
             <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700">
               Company
@@ -220,22 +242,10 @@ export function CompanyProfileSection() {
         action={
           editingDetails ? (
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setEditingDetails(false);
-                  setWebsite(profile.website ?? "");
-                }}
-              >
+              <Button size="sm" variant="outline" onClick={() => { setEditingDetails(false); setWebsite(profile.website ?? ""); }}>
                 Cancel
               </Button>
-              <Button
-                size="sm"
-                onClick={handleSaveDetails}
-                disabled={savingDetails}
-                className="bg-slate-900 text-white hover:bg-slate-700"
-              >
+              <Button size="sm" onClick={handleSaveDetails} disabled={savingDetails} className="bg-slate-900 text-white hover:bg-slate-700">
                 {savingDetails ? "Saving…" : "Save"}
               </Button>
             </div>
@@ -250,31 +260,14 @@ export function CompanyProfileSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Field label="Website">
             {editingDetails ? (
-              <Input
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
-              />
+              <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
             ) : (
               <p className="text-sm font-medium text-slate-900">
                 {profile.website ? (
-                  <a
-                    href={
-                      profile.website && (profile.website.startsWith("http://") || profile.website.startsWith("https://"))
-                        ? profile.website
-                        : profile.website
-                          ? `https://${profile.website}`
-                          : "#"
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-slate-700 hover:underline"
-                  >
+                  <a href={getWebsiteUrl(profile.website)} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:underline">
                     {profile.website}
                   </a>
-                ) : (
-                  "—"
-                )}
+                ) : "—"}
               </p>
             )}
           </Field>
@@ -305,22 +298,10 @@ export function CompanyProfileSection() {
         />
         {editingDesc && (
           <div className="flex justify-end gap-2 mt-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setEditingDesc(false);
-                setDescription(profile.description ?? "");
-              }}
-            >
+            <Button variant="outline" size="sm" onClick={() => { setEditingDesc(false); setDescription(profile.description ?? ""); }}>
               Cancel
             </Button>
-            <Button
-              size="sm"
-              onClick={handleSaveDesc}
-              disabled={savingDesc}
-              className="bg-slate-900 text-white hover:bg-slate-700"
-            >
+            <Button size="sm" onClick={handleSaveDesc} disabled={savingDesc} className="bg-slate-900 text-white hover:bg-slate-700">
               {savingDesc ? "Saving…" : "Save"}
             </Button>
           </div>

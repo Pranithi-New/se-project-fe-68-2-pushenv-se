@@ -9,7 +9,43 @@ interface PaginationProps {
   basePath?: string;
 }
 
-export default function Pagination({ total, limit, currentPage, basePath = "/events" }: PaginationProps) {
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function PageButton({
+  page,
+  active,
+  onClick,
+}: {
+  page: number | string;
+  active?: boolean;
+  onClick?: () => void;
+}) {
+  if (page === "...") {
+    return <span className="px-2 text-slate-400">...</span>;
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className={`w-10 h-10 flex items-center justify-center rounded-lg border ${
+        active
+          ? "border-slate-300 bg-white"
+          : "border-transparent text-slate-600 hover:bg-slate-50"
+      } font-medium text-sm transition-all`}
+    >
+      {page}
+    </button>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
+
+export default function Pagination({
+  total,
+  limit,
+  currentPage,
+  basePath = "/events",
+}: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -22,78 +58,35 @@ export default function Pagination({ total, limit, currentPage, basePath = "/eve
     router.push(`${basePath}?${params.toString()}`);
   };
 
-  const renderPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    // Always show page 1
-    pages.push(
-      <button
-        key={1}
-        onClick={() => handlePageChange(1)}
-        className={`w-10 h-10 flex items-center justify-center rounded-lg border ${
-          currentPage === 1 ? "border-slate-300 bg-white" : "border-transparent text-slate-600 hover:bg-slate-50"
-        } font-medium text-sm transition-all`}
-      >
-        1
-      </button>
-    );
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
 
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 2; i <= totalPages; i++) {
-        pages.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`w-10 h-10 flex items-center justify-center rounded-lg border ${
-              currentPage === i ? "border-slate-300 bg-white" : "border-transparent text-slate-600 hover:bg-slate-50"
-            } font-medium text-sm transition-all`}
-          >
-            {i}
-          </button>
-        );
-      }
-    } else {
-      // Logic for "..." elipsis
-      if (currentPage > 3) {
-        pages.push(<span key="dots-start" className="px-2 text-slate-400">...</span>);
-      }
-      
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-      
-      for (let i = start; i <= end; i++) {
-        if (i === 1 || i === totalPages) continue;
-        pages.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`w-10 h-10 flex items-center justify-center rounded-lg border ${
-              currentPage === i ? "border-slate-300 bg-white" : "border-transparent text-slate-600 hover:bg-slate-50"
-            } font-medium text-sm transition-all`}
-          >
-            {i}
-          </button>
-        );
-      }
-
-      if (currentPage < totalPages - 2) {
-        pages.push(<span key="dots-end" className="px-2 text-slate-400">...</span>);
-      }
-
-      // Always show last page
-      pages.push(
-        <button
-          key={totalPages}
-          onClick={() => handlePageChange(totalPages)}
-          className={`w-10 h-10 flex items-center justify-center rounded-lg border ${
-            currentPage === totalPages ? "border-slate-300 bg-white" : "border-transparent text-slate-600 hover:bg-slate-50"
-          } font-medium text-sm transition-all`}
-        >
-          {totalPages}
-        </button>
-      );
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
     }
+
+    // Always show page 1
+    pages.push(1);
+
+    if (currentPage > 3) {
+      pages.push("...");
+    }
+
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+
+    for (let i = start; i <= end; i++) {
+      if (i > 1 && i < totalPages) pages.push(i);
+    }
+
+    if (currentPage < totalPages - 2) {
+      pages.push("...");
+    }
+
+    // Always show last page
+    pages.push(totalPages);
 
     return pages;
   };
@@ -107,9 +100,16 @@ export default function Pagination({ total, limit, currentPage, basePath = "/eve
       >
         Previous
       </button>
-      
+
       <div className="flex items-center gap-2">
-        {renderPageNumbers()}
+        {getPageNumbers().map((p, idx) => (
+          <PageButton
+            key={p === "..." ? `dots-${idx}` : p}
+            page={p}
+            active={currentPage === p}
+            onClick={typeof p === "number" ? () => handlePageChange(p) : undefined}
+          />
+        ))}
       </div>
 
       <button
