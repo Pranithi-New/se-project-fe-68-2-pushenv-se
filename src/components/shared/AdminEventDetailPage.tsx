@@ -171,6 +171,11 @@ export function AdminEventDetailPage({ eventId }: Readonly<{ eventId: string }>)
     endDate: "",
     banner: "",
   });
+  const [errors, setErrors] = useState<{
+    name?: string;
+    location?: string;
+    date?: string;
+  }>({});
 
   const loadEvent = useCallback(async () => {
     setLoading(true);
@@ -200,6 +205,21 @@ export function AdminEventDetailPage({ eventId }: Readonly<{ eventId: string }>)
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+
+    const newErrors: typeof errors = {};
+    if (!form.name.trim()) newErrors.name = "Event name is required";
+    if (!form.location.trim()) newErrors.location = "Location is required";
+    if (form.startDate && form.endDate && new Date(form.endDate) < new Date(form.startDate)) {
+      newErrors.date = "End date cannot be before start date";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fix the errors in the form");
+      return;
+    }
+
+    setErrors({});
     setSaving(true);
     try {
       await api.put(`/admin/events/${eventId}`, {
@@ -420,9 +440,19 @@ export function AdminEventDetailPage({ eventId }: Readonly<{ eventId: string }>)
                   <Label className="mb-1.5 block text-xs font-medium text-slate-600">Name</Label>
                   <Input
                     value={form.name}
-                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                    className={cn("h-9 rounded-lg text-sm", adminInputClassName)}
+                    onChange={e => {
+                      setForm(f => ({ ...f, name: e.target.value }));
+                      if (errors.name) setErrors(prev => ({ ...prev, name: undefined }));
+                    }}
+                    className={cn(
+                      "h-9 rounded-lg text-sm",
+                      adminInputClassName,
+                      errors.name && "border-rose-500 focus-visible:ring-rose-500"
+                    )}
                   />
+                  {errors.name && (
+                    <p className="mt-1 text-[11px] font-medium text-rose-500">{errors.name}</p>
+                  )}
                 </div>
                 <div>
                   <Label className="mb-1.5 block text-xs font-medium text-slate-600">Location</Label>
@@ -430,10 +460,20 @@ export function AdminEventDetailPage({ eventId }: Readonly<{ eventId: string }>)
                     <MapPin className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                     <Input
                       value={form.location}
-                      onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
-                      className={cn("h-9 rounded-lg pl-9 text-sm", adminInputClassName)}
+                      onChange={e => {
+                        setForm(f => ({ ...f, location: e.target.value }));
+                        if (errors.location) setErrors(prev => ({ ...prev, location: undefined }));
+                      }}
+                      className={cn(
+                        "h-9 rounded-lg pl-9 text-sm",
+                        adminInputClassName,
+                        errors.location && "border-rose-500 focus-visible:ring-rose-500"
+                      )}
                     />
                   </div>
+                  {errors.location && (
+                    <p className="mt-1 text-[11px] font-medium text-rose-500">{errors.location}</p>
+                  )}
                 </div>
                 <div>
                   <Label className="mb-1.5 block text-xs font-medium text-slate-600">Banner URL</Label>
@@ -447,25 +487,44 @@ export function AdminEventDetailPage({ eventId }: Readonly<{ eventId: string }>)
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="mb-1.5 block text-xs font-medium text-slate-600">Start date</Label>
-                    <Input
-                      type="date"
-                      value={form.startDate}
-                      onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
-                      className={cn("h-9 rounded-lg text-sm", adminInputClassName)}
-                    />
+                <div className="space-y-1.5">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="mb-1.5 block text-xs font-medium text-slate-600">Start date</Label>
+                      <Input
+                        type="date"
+                        value={form.startDate}
+                        onChange={e => {
+                          setForm(f => ({ ...f, startDate: e.target.value }));
+                          if (errors.date) setErrors(prev => ({ ...prev, date: undefined }));
+                        }}
+                        className={cn(
+                          "h-9 rounded-lg text-sm",
+                          adminInputClassName,
+                          errors.date && "border-rose-500 focus-visible:ring-rose-500"
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-1.5 block text-xs font-medium text-slate-600">End date</Label>
+                      <Input
+                        type="date"
+                        value={form.endDate}
+                        onChange={e => {
+                          setForm(f => ({ ...f, endDate: e.target.value }));
+                          if (errors.date) setErrors(prev => ({ ...prev, date: undefined }));
+                        }}
+                        className={cn(
+                          "h-9 rounded-lg text-sm",
+                          adminInputClassName,
+                          errors.date && "border-rose-500 focus-visible:ring-rose-500"
+                        )}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label className="mb-1.5 block text-xs font-medium text-slate-600">End date</Label>
-                    <Input
-                      type="date"
-                      value={form.endDate}
-                      onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                      className={cn("h-9 rounded-lg text-sm", adminInputClassName)}
-                    />
-                  </div>
+                  {errors.date && (
+                    <p className="text-[11px] font-medium text-rose-500">{errors.date}</p>
+                  )}
                 </div>
                 <div>
                   <Label className="mb-1.5 block text-xs font-medium text-slate-600">Description</Label>
