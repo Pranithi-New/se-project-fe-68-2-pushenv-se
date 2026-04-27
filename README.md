@@ -9,68 +9,73 @@ Next.js 16 frontend scaffold for the Job Fair platform.
 - Tailwind CSS
 - TanStack Query
 - React Hook Form + Zod
+- Playwright (E2E Testing)
 
-## Fresh Frontend Setup
+## Architecture Note: Why `BACKEND_URL` instead of `NEXT_PUBLIC_*`?
 
-Use this when starting from zero in a new clone.
+In a "normal" Next.js app, you might see `NEXT_PUBLIC_API_URL`. Variables prefixed with `NEXT_PUBLIC_` are baked into the browser bundle. If you build a Docker image with this, the image becomes hardcoded to that specific public URL and cannot be deployed anywhere else without rebuilding.
+
+To achieve a true **"Build Once, Run Anywhere"** Docker image, this application uses the Next.js Server as a **Transparent Proxy**:
+1. The browser makes API calls to relative paths (e.g., `/api/backend/...`).
+2. The Next.js server receives these requests and proxies them to the `BACKEND_URL`.
+3. Because the proxy happens purely on the server, `BACKEND_URL` remains a server-side secret. 
+4. In Docker, this allows the frontend to talk to the backend using internal Docker networking (`http://backend:4000`) without exposing the backend to the public internet or dealing with complex CORS setups.
+
+## Running Local Development (Standalone)
+
+Use this flow if you are running `pnpm dev` on your host machine.
 
 1. Install dependencies from the workspace root:
-
    ```bash
    pnpm install
    ```
 
 2. Create the frontend env file:
-
    ```bash
    cp .env.example .env
    ```
+   *(Ensure `BACKEND_URL=http://localhost:4000` is set)*
 
-3. Set the API base URL in `.env` file:
-
-   ```bash
-   NEXT_PUBLIC_API_URL=http://localhost:4000
-   ```
-
-4. Make sure the backend is running before you test authenticated pages.
-
-5. Start the frontend:
-
+3. Start the frontend dev server:
    ```bash
    pnpm dev
    ```
 
-## First Run Checklist
+## Running via Docker Compose
 
-After the app starts, confirm these routes load without errors:
+The infrastructure is centralized in the backend repository's `infra/` folder.
 
-- `http://localhost:3000`
-- `http://localhost:3000/login`
-- `http://localhost:3000/register`
+1. **Build the Image**:
+   ```bash
+   pnpm docker:build
+   ```
+   *(Note: There is no `docker:push` script. If you need to push this image to a registry, tag and push it manually using your own Docker Hub credentials.)*
 
-If you are testing authenticated flows, also confirm the backend is available at `http://localhost:4000/api/v1/health`.
+2. **Run the Full Stack** (from the backend's `infra/` directory):
+   ```bash
+   pnpm compose:prod
+   ```
+
+## Automated Testing
+
+This project uses Playwright for End-to-End testing.
+
+- Run all tests: `pnpm test`
+- Run tests with UI mode: `pnpm test:ui`
 
 ## Frontend Scripts
 
-- `pnpm dev`
-- `pnpm build`
-- `pnpm start`
-- `pnpm lint`
-- `pnpm typecheck`
+- `pnpm dev` - Start local dev server
+- `pnpm build` - Build production bundle
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+- `pnpm typecheck` - Run TypeScript validation
+- `pnpm test` - Run E2E tests
+- `pnpm docker:build` - Build Docker image
 
 ## Development Flow
 
-Use this order when changing frontend behavior.
-
 1. Keep the backend API shape in mind when editing pages or forms.
-2. Use `src/lib/api.ts` for requests so auth headers and error handling stay consistent.
+2. Use `src/lib/api.ts` for requests. This automatically routes traffic through the Next.js proxy.
 3. Use `src/lib/auth.ts` when reading or writing the token.
-4. Update the role-based route groups under `src/app/` as needed.
-5. Adjust `src/proxy.ts` if route protection or redirect behavior changes.
-6. Verify with `pnpm lint`, `pnpm typecheck`, and `pnpm build`.
-
-## Runtime Notes
-
-- `NEXT_PUBLIC_API_URL` controls the API base URL.
-- The frontend expects the backend to be running before authenticated pages can work.
-- Protected routes are split by role under `src/app`.
+4. Verify with `pnpm lint`, `pnpm typecheck`, and `pnpm test`.
