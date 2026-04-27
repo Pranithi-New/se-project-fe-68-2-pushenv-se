@@ -62,7 +62,14 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
   const json = await response.json();
 
   if (!response.ok) {
+    if (json?.error === "Invalid CSRF token" || response.status === 403) {
+      csrfTokenCache = null;
+    }
     throw json;
+  }
+
+  if (path.startsWith("/auth/login") || path.startsWith("/auth/logout") || path.startsWith("/auth/register")) {
+    csrfTokenCache = null;
   }
 
   return json as T;
