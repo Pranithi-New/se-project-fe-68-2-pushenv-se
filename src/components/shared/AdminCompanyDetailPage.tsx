@@ -33,7 +33,7 @@ type CompanyDetail = CompanyProfile & {
   }[];
 };
 
-export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
+export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: string }>) {
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
     try {
       await api.delete(`/admin/accounts/${company.companyUserId}`);
       toast.success("Company deleted");
-      window.location.href = "/admin/companies";
+      globalThis.window.location.href = "/admin/companies";
     } catch (err) {
       const message =
         err && typeof err === "object" && "message" in err
@@ -175,9 +175,7 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
               <h2 className="text-sm font-semibold text-slate-900">Participated events</h2>
             </div>
             <div className="px-5 py-5">
-              {!company.eventLinks?.length ? (
-                <p className="text-sm text-slate-500">Not linked to any events yet.</p>
-              ) : (
+              {company.eventLinks?.length ? (
                 <div className="grid gap-2 md:grid-cols-2">
                   {company.eventLinks.map(link => (
                     <Link
@@ -190,6 +188,8 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
                     </Link>
                   ))}
                 </div>
+              ) : (
+                <p className="text-sm text-slate-500">Not linked to any events yet.</p>
               )}
             </div>
           </AdminPagePanel>
@@ -201,9 +201,7 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
               <span className="ml-auto text-xs font-medium tabular-nums text-slate-400">{jobs.length}</span>
             </div>
             <div className="px-5 py-5">
-              {!jobs.length ? (
-                <p className="text-sm text-slate-500">No job listings yet.</p>
-              ) : (
+              {jobs.length ? (
                 <div className="space-y-2">
                   {jobs.map(job => (
                     <div key={job.id} className="rounded-lg border border-slate-100 px-4 py-3">
@@ -228,6 +226,8 @@ export function AdminCompanyDetailPage({ companyId }: { companyId: string }) {
                     </div>
                   ))}
                 </div>
+              ) : (
+                <p className="text-sm text-slate-500">No job listings yet.</p>
               )}
             </div>
           </AdminPagePanel>

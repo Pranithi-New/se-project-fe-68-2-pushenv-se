@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { resolveAssetUrl } from "@/lib/event-utils";
 import type { ApiResponse } from "@/types/api";
+import { ProfileField, ProfileSection } from "@/components/shared/profile/ProfilePrimitives";
 
 type CompanyProfile = {
   id: string;
@@ -139,38 +140,7 @@ function useDescEditor(
   return { editing, setEditing, saving, save, cancel };
 }
 
-// ── Sub-components ──────────────────────────────────────────────────────────
-
-function Section({ icon, title, subtitle, action, children }: {
-  icon: React.ReactNode; title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/60">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm text-slate-600">{icon}</div>
-          <div>
-            <p className="text-sm font-semibold text-slate-800">{title}</p>
-            {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
-          </div>
-        </div>
-        {action}
-      </div>
-      <div className="px-6 py-5">{children}</div>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function CompanyLogo({ logo, onLogoClick }: { logo: string | null | undefined; onLogoClick: () => void }) {
+function CompanyLogo({ logo, onLogoClick }: Readonly<{ logo: string | null | undefined; onLogoClick: () => void }>) {
   return (
     <div className="relative shrink-0">
       <div className="h-16 w-16 rounded-xl overflow-hidden bg-white border-4 border-white shadow-md flex items-center justify-center">
@@ -235,14 +205,14 @@ export function CompanyProfileSection() {
       </div>
 
       {/* Company Details */}
-      <Section
+      <ProfileSection
         icon={<Globe className="h-4 w-4" />}
         title="Company Details"
         subtitle="Public-facing information"
         action={detingDetailsAction(detailsEditor, profile, website, setWebsite)}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <Field label="Website">
+          <ProfileField label="Website">
             {detailsEditor.editing
               ? <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
               : (
@@ -252,20 +222,20 @@ export function CompanyProfileSection() {
                     : "—"}
                 </p>
               )}
-          </Field>
+          </ProfileField>
         </div>
-      </Section>
+      </ProfileSection>
 
       {/* Description */}
-      <Section
+      <ProfileSection
         icon={<Building2 className="h-4 w-4" />}
         title="About"
         subtitle="Shown to job seekers on your profile"
-        action={!descEditor.editing ? (
+        action={descEditor.editing ? undefined : (
           <Button size="sm" variant="outline" onClick={() => descEditor.setEditing(true)}>
             <Pencil className="h-3.5 w-3.5 mr-1.5" />Edit
           </Button>
-        ) : undefined}
+        )}
       >
         <textarea
           value={description}
@@ -281,7 +251,7 @@ export function CompanyProfileSection() {
             <Button size="sm" onClick={descEditor.save} disabled={descEditor.saving} className="bg-slate-900 text-white hover:bg-slate-700">{descEditor.saving ? "Saving…" : "Save"}</Button>
           </div>
         )}
-      </Section>
+      </ProfileSection>
     </div>
   );
 }

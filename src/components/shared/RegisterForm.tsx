@@ -48,6 +48,7 @@ export function RegisterForm() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [hasReadPolicy, setHasReadPolicy] = useState(false);
+  const policyIsUnread = hasReadPolicy === false;
   
   useEffect(() => {
     setMounted(true);
@@ -169,13 +170,13 @@ export function RegisterForm() {
                     <input
                       id="consent-checkbox"
                       type="checkbox"
-                      disabled={!mounted ? undefined : !hasReadPolicy}
+                      disabled={mounted ? policyIsUnread : undefined}
                       className="h-4 w-4 shrink-0 rounded-sm border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 accent-primary"
                       checked={field.value === true}
                       onChange={(e) => field.onChange(e.target.checked)}
                     />
                     <div className="space-y-1 leading-none">
-                      <FormLabel htmlFor="consent-checkbox" className={!hasReadPolicy ? "text-muted-foreground" : "text-foreground"}>
+                      <FormLabel htmlFor="consent-checkbox" className={hasReadPolicy ? "text-foreground" : "text-muted-foreground"}>
                         I agree to the{" "}
                         <a
                           href="/privacy"
@@ -188,7 +189,7 @@ export function RegisterForm() {
                         </a>
                       </FormLabel>
                       <CardDescription className="text-xs mt-1.5 block">
-                        {!hasReadPolicy ? "You must click the link to read the policy before checking this box." : "Thank you for reading the policy."}
+                        {hasReadPolicy ? "Thank you for reading the policy." : "You must click the link to read the policy before checking this box."}
                       </CardDescription>
                       <FormMessage />
                     </div>

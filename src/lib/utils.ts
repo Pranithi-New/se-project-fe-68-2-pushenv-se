@@ -32,7 +32,7 @@ export function sanitizeUrl(url?: string | null): string | undefined {
     if (allowedProtocols.includes(parsed.protocol)) {
       return parsed.toString();
     }
-  } catch (e) {
+  } catch {
     return "about:blank";
   }
   

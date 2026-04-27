@@ -2,53 +2,40 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { X, Search } from "lucide-react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { api } from "@/lib/api";
 import type { ApiResponse } from "@/types/api";
 import { AdminEvent } from "./types";
 import { extractErrorMessage, toDateInput } from "./utils";
+import { EventFormFields, type EventFormValues, useEventForm } from "./EventFormFields";
 
-// ── General Info Schemas ──────────────────────────────────────────────────────
+type CompanySearchResult = {
+  id: string;
+  companyUser: {
+    name: string;
+    email: string;
+  };
+};
 
-const eventFormSchema = z.object({
-  name: z.string().min(1, "Event name is required"),
-  location: z.string().min(1, "Location is required"),
-  description: z.string().min(5, "Description must be at least 5 characters"),
-  startDate: z.string().min(1, "Start Date is required"),
-  endDate: z.string().min(1, "End Date is required"),
-}).refine(data => new Date(data.endDate) >= new Date(data.startDate), {
-  message: "End date cannot be before start date",
-  path: ["endDate"]
-});
-
-type EventFormValues = z.infer<typeof eventFormSchema>;
+type EventCompany = {
+  company: CompanySearchResult;
+};
 
 // ── Component: Edit Event General Info ────────────────────────────────────────
 
-function EditEventGeneralInfo({ event, onClose, onUpdated }: { event: AdminEvent; onClose: () => void; onUpdated: () => void }) {
-  const form = useForm<EventFormValues>({
-    resolver: zodResolver(eventFormSchema),
-    defaultValues: {
-      name: event.name,
-      location: event.location,
-      description: event.description,
-      startDate: toDateInput(event.startDate),
-      endDate: toDateInput(event.endDate),
-    },
+function EditEventGeneralInfo({ event, onClose, onUpdated }: Readonly<{ event: AdminEvent; onClose: () => void; onUpdated: () => void }>) {
+  const form = useEventForm({
+    name: event.name,
+    location: event.location,
+    description: event.description,
+    startDate: toDateInput(event.startDate),
+    endDate: toDateInput(event.endDate),
   });
 
   async function onSubmit(values: EventFormValues) {
@@ -65,69 +52,7 @@ function EditEventGeneralInfo({ event, onClose, onUpdated }: { event: AdminEvent
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 h-full">
         <div className="flex-col gap-4 flex flex-1">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <textarea
-                    {...field}
-                    rows={3}
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="startDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Start Date</FormLabel>
-                  <FormControl><Input type="date" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="endDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>End Date</FormLabel>
-                  <FormControl><Input type="date" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <EventFormFields form={form} />
         </div>
         <div className="flex justify-end gap-2 pt-4 mt-2 shrink-0">
           <Button type="button" variant="outline" onClick={onClose}>Close</Button>
@@ -142,13 +67,13 @@ function EditEventGeneralInfo({ event, onClose, onUpdated }: { event: AdminEvent
 
 // ── Component: Participating Companies ────────────────────────────────────────
 
-function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; onClose: () => void; onUpdated: () => void }) {
-  const [eventCompanies, setEventCompanies] = useState<any[]>([]);
+function EditEventCompanies({ event, onClose, onUpdated }: Readonly<{ event: AdminEvent; onClose: () => void; onUpdated: () => void }>) {
+  const [eventCompanies, setEventCompanies] = useState<EventCompany[]>([]);
   const [loadingComp, setLoadingComp] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<CompanySearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanySearchResult | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
@@ -157,7 +82,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
   const fetchEventCompanies = useCallback(async () => {
     setLoadingComp(true);
     try {
-      const res = await api.get<ApiResponse<any>>(`/events/${event.id}/companies`);
+      const res = await api.get<ApiResponse<EventCompany[]>>(`/events/${event.id}/companies`);
       setEventCompanies(res.data || []);
     } catch {
       toast.error("Failed to load participating companies");
@@ -178,7 +103,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await api.get<ApiResponse<{ data: any[] }>>("/admin/companies", {
+        const res = await api.get<ApiResponse<{ data: CompanySearchResult[] }>>("/admin/companies", {
           params: { name: searchTerm, limit: 10 }
         });
         setSearchResults(res.data.data || []);
@@ -298,7 +223,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
             <div className="text-sm text-muted-foreground py-4 text-center border rounded-md border-dashed">No companies assigned to this event</div>
           ) : (
             <div className="flex flex-wrap gap-2 pt-1 pb-4">
-              {eventCompanies.map((ec: any) => (
+              {eventCompanies.map((ec) => (
                 <div key={ec.company.id} className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 bg-muted/50 hover:bg-muted border rounded-full text-sm transition-colors shadow-sm">
                   <span className="font-medium whitespace-nowrap">{ec.company.companyUser.name}</span>
                   <button
@@ -322,7 +247,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
       <ConfirmModal
         open={!!confirmRemoveId}
         onClose={() => setConfirmRemoveId(null)}
-        onConfirm={() => handleRemoveCompany(confirmRemoveId!)}
+        onConfirm={() => { if (confirmRemoveId) handleRemoveCompany(confirmRemoveId); }}
         title="Remove company"
         description="Remove this company from the event? They will no longer appear as a participant."
         confirmLabel="Remove"
@@ -333,7 +258,7 @@ function EditEventCompanies({ event, onClose, onUpdated }: { event: AdminEvent; 
 
 // ── Main Layout Modal ─────────────────────────────────────────────────────────
 
-export function EditModal({ event, onClose, onUpdated }: { event: AdminEvent; onClose: () => void; onUpdated: () => void }) {
+export function EditModal({ event, onClose, onUpdated }: Readonly<{ event: AdminEvent; onClose: () => void; onUpdated: () => void }>) {
   const [activeTab, setActiveTab] = useState<"info" | "companies">("info");
 
   return (

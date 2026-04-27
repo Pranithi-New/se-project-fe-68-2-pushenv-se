@@ -19,7 +19,7 @@ type Props = {
   title?: string;
 };
 
-export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], title = "Add company" }: Props) {
+export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], title = "Add company" }: Readonly<Props>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Company[]>([]);
   const [searching, setSearching] = useState(false);
@@ -80,15 +80,16 @@ export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], t
   if (!open) return null;
 
   return (
-    <div
-      role="button"
-      tabIndex={-1}
-      aria-label="Close modal background"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[14vh]"
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
-      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onClose(); }}
-    >
-      <div className="mx-4 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh]">
+      {/* Backdrop */}
+      <button
+        type="button"
+        aria-label="Close modal background"
+        className="fixed inset-0 h-full w-full cursor-default border-none bg-black/50 outline-none"
+        onClick={onClose}
+        tabIndex={-1}
+      />
+      <div className="relative z-10 mx-4 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
           <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
@@ -124,15 +125,17 @@ export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], t
 
         {/* Results */}
         <div className="max-h-[320px] overflow-y-auto">
-          {!query.trim() ? (
+          {!query.trim() && (
             <p className="px-4 py-8 text-center text-sm text-slate-400">
               Start typing to search companies
             </p>
-          ) : results.length === 0 && !searching ? (
+          )}
+          {query.trim() !== "" && results.length === 0 && !searching && (
             <p className="px-4 py-8 text-center text-sm text-slate-400">
               No companies found for &ldquo;{query}&rdquo;
             </p>
-          ) : (
+          )}
+          {query.trim() !== "" && (results.length > 0 || searching) && (
             <ul className="p-2">
               {results.map(company => {
                 const alreadyAdded = excludeIds.includes(company.id);
@@ -144,32 +147,31 @@ export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], t
                       disabled={alreadyAdded}
                       onClick={() => setSelected(isSelected ? null : company)}
                       className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors disabled:cursor-default ${
-                        isSelected
-                          ? "bg-slate-900"
-                          : alreadyAdded
-                          ? "opacity-50"
-                          : "hover:bg-slate-50"
+                        isSelected ? "bg-slate-900" : ""
+                      } ${!isSelected && alreadyAdded ? "opacity-50" : ""} ${
+                        !isSelected && !alreadyAdded ? "hover:bg-slate-50" : ""
                       }`}
                     >
                       <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
                         {company.companyUser.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className={`truncate text-sm font-medium ${isSelected ? "text-white" : alreadyAdded ? "text-slate-400" : "text-slate-900"}`}>
+                        <p className={`truncate text-sm font-medium ${isSelected ? "text-white" : ""} ${!isSelected && alreadyAdded ? "text-slate-400" : ""} ${!isSelected && !alreadyAdded ? "text-slate-900" : ""}`}>
                           {company.companyUser.name}
                         </p>
                         <p className={`truncate text-xs ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
                           {company.companyUser.email}
                         </p>
                       </div>
-                      {alreadyAdded ? (
+                      {alreadyAdded && (
                         <span className="flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-400">
                           <Check className="h-3 w-3" />
                           Added
                         </span>
-                      ) : isSelected ? (
+                      )}
+                      {!alreadyAdded && isSelected && (
                         <Check className="h-4 w-4 shrink-0 text-white" />
-                      ) : null}
+                      )}
                     </button>
                   </li>
                 );
@@ -190,7 +192,8 @@ export function CompanySearchModal({ open, onClose, onSelect, excludeIds = [], t
             className="flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {adding && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            {adding ? "Adding…" : "Add company"}
+            {adding && "Adding…"}
+            {!adding && "Add company"}
           </button>
         </div>
       </div>

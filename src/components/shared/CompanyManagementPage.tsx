@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
-  AdminDialog,
   AdminEmptyState,
   AdminLoadingState,
   AdminMobileCard,
@@ -22,14 +21,12 @@ import {
   AdminTableRow,
   AdminTableWrapper,
   AdminToolbar,
-  adminInputClassName,
 } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
-import { cn } from "@/lib/utils";
 import type { ApiResponse } from "@/types/api";
+import { CreateAccountModal } from "@/components/shared/admin/CreateAccountModal";
+import { buildPages, formatDateTime } from "@/components/shared/admin/admin-list-utils";
 
 type CompanyUser = { id: string; name: string; email: string };
 
@@ -53,102 +50,6 @@ type CompaniesPayload = {
 };
 
 const LIMIT = 10;
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function buildPages(page: number, total: number): (number | "...")[] {
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  const items: (number | "...")[] = [1];
-  if (page > 3) items.push("...");
-  for (let i = Math.max(2, page - 1); i <= Math.min(total - 1, page + 1); i++) items.push(i);
-  if (page < total - 2) items.push("...");
-  items.push(total);
-  return items;
-}
-
-function extractErrorMessage(err: unknown, fallback: string) {
-  return err && typeof err === "object" && "message" in err
-    ? String((err as { message: unknown }).message)
-    : fallback;
-}
-
-function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await api.post("/admin/accounts", { ...form, role: "companyUser" });
-      toast.success("Company created");
-      onCreated();
-    } catch (err) {
-      toast.error(extractErrorMessage(err, "Failed to create company"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <AdminDialog
-      title="Create company"
-      description="Create the company account first, then open the detail page to edit profile content and jobs."
-      onClose={onClose}
-    >
-      <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5 sm:px-6 sm:py-6">
-        <div className="grid gap-4">
-          <div>
-            <Label className="mb-2 block text-sm font-medium text-slate-700">Company name</Label>
-            <Input
-              required
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className={cn("h-11 rounded-xl", adminInputClassName)}
-            />
-          </div>
-          <div>
-            <Label className="mb-2 block text-sm font-medium text-slate-700">Email</Label>
-            <Input
-              required
-              type="email"
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              className={cn("h-11 rounded-xl", adminInputClassName)}
-            />
-          </div>
-          <div>
-            <Label className="mb-2 block text-sm font-medium text-slate-700">Password</Label>
-            <Input
-              required
-              type="password"
-              value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              className={cn("h-11 rounded-xl", adminInputClassName)}
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">
-          <Button type="button" variant="outline" className="rounded-xl border-slate-200" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" className="rounded-xl" disabled={saving}>
-            {saving ? "Creating..." : "Create company"}
-          </Button>
-        </div>
-      </form>
-    </AdminDialog>
-  );
-}
 
 export function CompanyManagementPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -221,9 +122,8 @@ export function CompanyManagementPage() {
       />
 
       <AdminTableWrapper>
-        {loading ? (
-          <AdminLoadingState label="Loading company data..." />
-        ) : filteredCompanies.length === 0 ? (
+        {loading && <AdminLoadingState label="Loading company data..." />}
+        {!loading && filteredCompanies.length === 0 && (
           <AdminEmptyState
             title={query ? "No matching companies" : "No companies found"}
             description={
@@ -232,7 +132,8 @@ export function CompanyManagementPage() {
                 : "Create a company to start managing its profile and jobs."
             }
           />
-        ) : (
+        )}
+        {!loading && filteredCompanies.length > 0 && (
           <>
             <AdminTable>
               <AdminTableHead>
@@ -268,7 +169,7 @@ export function CompanyManagementPage() {
                       )}
                     </AdminTableCell>
                     <AdminTableCell>{company._count.jobs}</AdminTableCell>
-                    <AdminTableCell>{formatDate(company.updatedAt)}</AdminTableCell>
+                    <AdminTableCell>{formatDateTime(company.updatedAt)}</AdminTableCell>
                     <AdminTableCell className="text-right">
                       <Button asChild variant="outline" size="sm" className="rounded-xl border-slate-200">
                         <Link href={`/admin/companies/${company.id}`}>
@@ -315,7 +216,16 @@ export function CompanyManagementPage() {
       <AdminPagination page={page} totalPages={totalPages} pages={pages} onPageChange={setPage} />
 
       {showCreate && (
-        <CreateModal
+        <CreateAccountModal
+          title="Create company"
+          description="Create the company account first, then open the detail page to edit profile content and jobs."
+          submitLabel="Create company"
+          submittingLabel="Creating..."
+          successMessage="Company created"
+          failureMessage="Failed to create company"
+          nameLabel="Company name"
+          showRoleSelect={false}
+          defaultRole="companyUser"
           onClose={() => setShowCreate(false)}
           onCreated={() => {
             setShowCreate(false);

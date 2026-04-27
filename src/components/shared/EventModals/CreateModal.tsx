@@ -1,53 +1,24 @@
 import { X } from "lucide-react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { api } from "@/lib/api";
 import { extractErrorMessage } from "./utils";
+import { EventFormFields, type EventFormValues, useEventForm } from "./EventFormFields";
 
-const createEventSchema = z.object({
-  name: z.string().min(1, "Event name is required"),
-  location: z.string().min(1, "Location is required"),
-  description: z.string().min(5, "Description must be at least 5 characters"),
-  startDate: z.string().min(1, "Start Date is required"),
-  endDate: z.string().min(1, "End Date is required"),
-}).refine(data => {
-  if (data.startDate && data.endDate) {
-    return new Date(data.endDate) >= new Date(data.startDate);
-  }
-  return true;
-}, {
-  message: "End date cannot be before start date",
-  path: ["endDate"]
-});
-
-type CreateEventValues = z.infer<typeof createEventSchema>;
-
-export function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const form = useForm<CreateEventValues>({
-    resolver: zodResolver(createEventSchema),
-    defaultValues: {
-      name: "",
-      location: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-    },
+export function CreateModal({ onClose, onCreated }: Readonly<{ onClose: () => void; onCreated: () => void }>) {
+  const form = useEventForm({
+    name: "",
+    location: "",
+    description: "",
+    startDate: "",
+    endDate: "",
   });
 
-  async function onSubmit(values: CreateEventValues) {
+  async function onSubmit(values: EventFormValues) {
     try {
       await api.post("/admin/events", values);
       toast.success("Event created");
@@ -69,70 +40,7 @@ export function CreateModal({ onClose, onCreated }: { onClose: () => void; onCre
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl><Input placeholder="Event name" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <FormControl><Input placeholder="Venue or Online format" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <textarea
-                      placeholder="Event details..."
-                      rows={3}
-                      className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Date</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Date</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <EventFormFields form={form} />
             
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

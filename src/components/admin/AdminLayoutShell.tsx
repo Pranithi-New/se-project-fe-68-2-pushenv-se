@@ -14,7 +14,7 @@ const adminLinks = [
   { href: "/admin/events", label: "Events", icon: CalendarRange },
 ];
 
-function SidebarContent({ pathname, onNavClick, onLogout }: { pathname: string; onNavClick?: () => void; onLogout: () => void }) {
+function SidebarContent({ pathname, onNavClick, onLogout }: Readonly<{ pathname: string; onNavClick?: () => void; onLogout: () => void }>) {
   return (
     <>
       <div className="flex items-center gap-2.5 border-b border-white/[0.07] px-5 py-[18px]">
@@ -81,7 +81,7 @@ function SidebarContent({ pathname, onNavClick, onLogout }: { pathname: string; 
   );
 }
 
-export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
+export function AdminLayoutShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -119,17 +119,11 @@ export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile overlay */}
       {open && (
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           aria-label="Close sidebar"
-          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 h-full w-full border-none bg-slate-950/60 outline-none backdrop-blur-sm lg:hidden"
           onClick={() => setOpen(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              setOpen(false);
-            }
-          }}
         />
       )}
 

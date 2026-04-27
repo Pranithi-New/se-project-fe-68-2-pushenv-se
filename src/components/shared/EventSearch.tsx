@@ -7,7 +7,7 @@ interface EventSearchProps {
   basePath?: string;
 }
 
-export default function EventSearch({ basePath = "/events" }: EventSearchProps) {
+export default function EventSearch({ basePath = "/events" }: Readonly<EventSearchProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("search") || "");
@@ -40,17 +40,11 @@ export default function EventSearch({ basePath = "/events" }: EventSearchProps) 
           className="w-full bg-transparent outline-none text-black text-sm font-normal font-sans placeholder:text-slate-400"
         />
       </div>
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         aria-label="Search"
-        className="w-5 p-0.5 inline-flex flex-col justify-center items-center cursor-pointer"
+        className="w-5 p-0.5 inline-flex flex-col justify-center items-center cursor-pointer outline-none border-none bg-transparent"
         onClick={handleSearch}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            handleSearch();
-          }
-        }}
       >
         <div className="w-4 h-4 relative overflow-hidden">
           <svg
@@ -69,7 +63,7 @@ export default function EventSearch({ basePath = "/events" }: EventSearchProps) 
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </div>
-      </div>
+      </button>
     </div>
   );
 }

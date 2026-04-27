@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import type { ApiResponse } from "@/types/api";
 import { AdminEvent } from "./EventModals/types";
 import { CreateModal } from "./EventModals/CreateModal";
+import { buildPages, formatDateOnly } from "@/components/shared/admin/admin-list-utils";
 
 type EventsPayload = {
   data: AdminEvent[];
@@ -39,24 +40,6 @@ type EventsPayload = {
 };
 
 const LIMIT = 10;
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function buildPages(page: number, total: number): (number | "...")[] {
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  const items: (number | "...")[] = [1];
-  if (page > 3) items.push("...");
-  for (let i = Math.max(2, page - 1); i <= Math.min(total - 1, page + 1); i++) items.push(i);
-  if (page < total - 2) items.push("...");
-  items.push(total);
-  return items;
-}
 
 function publishBadgeClassName(isPublished: boolean) {
   return isPublished
@@ -136,9 +119,8 @@ export function EventManagementPage() {
       />
 
       <AdminTableWrapper>
-        {loading ? (
-          <AdminLoadingState label="Loading event roster..." />
-        ) : filteredEvents.length === 0 ? (
+        {loading && <AdminLoadingState label="Loading event roster..." />}
+        {!loading && filteredEvents.length === 0 && (
           <AdminEmptyState
             title={query ? "No matching events" : "No events found"}
             description={
@@ -147,7 +129,8 @@ export function EventManagementPage() {
                 : "Create an event to start building the admin event flow."
             }
           />
-        ) : (
+        )}
+        {!loading && filteredEvents.length > 0 && (
           <>
             <AdminTable>
               <AdminTableHead>
@@ -173,8 +156,8 @@ export function EventManagementPage() {
                     </AdminTableCell>
                     <AdminTableCell>
                       <div className="space-y-1">
-                        <p>{formatDate(event.startDate)}</p>
-                        <p className="text-xs text-slate-500">to {formatDate(event.endDate)}</p>
+                        <p>{formatDateOnly(event.startDate)}</p>
+                        <p className="text-xs text-slate-500">to {formatDateOnly(event.endDate)}</p>
                       </div>
                     </AdminTableCell>
                     <AdminTableCell>{event._count.companies}</AdminTableCell>
@@ -203,7 +186,7 @@ export function EventManagementPage() {
                     <Badge variant="outline" className={cn("rounded-full px-2.5 py-1 text-xs font-medium", publishBadgeClassName(event.isPublished))}>
                       {event.isPublished ? "Published" : "Draft"}
                     </Badge>
-                    <span className="text-sm text-slate-500">{formatDate(event.startDate)}</span>
+                    <span className="text-sm text-slate-500">{formatDateOnly(event.startDate)}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm text-slate-600">
                     <div>

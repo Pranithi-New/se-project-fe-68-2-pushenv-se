@@ -16,10 +16,10 @@ export const adminSelectClassName =
 export function AdminPagePanel({
   children,
   className,
-}: {
+}: Readonly<{
   children: ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <section className={cn("rounded-xl border border-slate-200 bg-white", className)}>
       {children}
@@ -33,13 +33,13 @@ export function AdminPageHeader({
   description,
   actions,
   stats,
-}: {
+}: Readonly<{
   eyebrow: string;
   title: string;
   description?: string;
   actions?: ReactNode;
   stats?: Array<{ label: string; value: string | number; hint?: string }>;
-}) {
+}>) {
   return (
     <div className="border-b border-slate-100 px-6 py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -72,13 +72,13 @@ export function AdminToolbar({
   searchPlaceholder,
   summary,
   children,
-}: {
+}: Readonly<{
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder: string;
   summary: string;
   children?: ReactNode;
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-3.5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 items-center gap-4">
@@ -98,11 +98,11 @@ export function AdminToolbar({
   );
 }
 
-export function AdminTableWrapper({ children }: { children: ReactNode }) {
+export function AdminTableWrapper({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="overflow-hidden">{children}</div>;
 }
 
-export function AdminTable({ children }: { children: ReactNode }) {
+export function AdminTable({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className="hidden overflow-x-auto md:block">
       <table className="w-full min-w-[880px] table-fixed text-sm">{children}</table>
@@ -110,17 +110,17 @@ export function AdminTable({ children }: { children: ReactNode }) {
   );
 }
 
-export function AdminTableHead({ children }: { children: ReactNode }) {
+export function AdminTableHead({ children }: Readonly<{ children: ReactNode }>) {
   return <thead className="border-b border-slate-100 bg-slate-50/70">{children}</thead>;
 }
 
 export function AdminTableHeaderCell({
   children,
   className,
-}: {
+}: Readonly<{
   children: ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <th
       className={cn(
@@ -133,21 +133,21 @@ export function AdminTableHeaderCell({
   );
 }
 
-export function AdminTableBody({ children }: { children: ReactNode }) {
+export function AdminTableBody({ children }: Readonly<{ children: ReactNode }>) {
   return <tbody className="divide-y divide-slate-100">{children}</tbody>;
 }
 
-export function AdminTableRow({ children }: { children: ReactNode }) {
+export function AdminTableRow({ children }: Readonly<{ children: ReactNode }>) {
   return <tr className="align-middle transition-colors hover:bg-slate-50/70">{children}</tr>;
 }
 
 export function AdminTableCell({
   children,
   className,
-}: {
+}: Readonly<{
   children: ReactNode;
   className?: string;
-}) {
+}>) {
   return <td className={cn("px-5 py-3.5 text-sm text-slate-600", className)}>{children}</td>;
 }
 
@@ -155,11 +155,11 @@ export function AdminPrimaryCell({
   title,
   subtitle,
   meta,
-}: {
+}: Readonly<{
   title: string;
   subtitle?: string | null;
   meta?: ReactNode;
-}) {
+}>) {
   return (
     <div className="space-y-0.5">
       <p className="truncate font-medium text-slate-900">{title}</p>
@@ -169,29 +169,29 @@ export function AdminPrimaryCell({
   );
 }
 
-export function AdminMetaText({ children }: { children: ReactNode }) {
+export function AdminMetaText({ children }: Readonly<{ children: ReactNode }>) {
   return <span className="text-xs text-slate-500">{children}</span>;
 }
 
-export function AdminActionGroup({ children }: { children: ReactNode }) {
+export function AdminActionGroup({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="flex flex-wrap items-center justify-end gap-2">{children}</div>;
 }
 
-export function AdminMobileList({ children }: { children: ReactNode }) {
+export function AdminMobileList({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="divide-y divide-slate-100 md:hidden">{children}</div>;
 }
 
-export function AdminMobileCard({ children }: { children: ReactNode }) {
+export function AdminMobileCard({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="space-y-3 px-5 py-4">{children}</div>;
 }
 
 export function AdminEmptyState({
   title,
   description,
-}: {
+}: Readonly<{
   title: string;
   description: string;
-}) {
+}>) {
   return (
     <div className="px-6 py-14 text-center">
       <div className="mx-auto max-w-sm">
@@ -202,7 +202,7 @@ export function AdminEmptyState({
   );
 }
 
-export function AdminLoadingState({ label }: { label: string }) {
+export function AdminLoadingState({ label }: Readonly<{ label: string }>) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-14">
       <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
@@ -216,12 +216,12 @@ export function AdminPagination({
   totalPages,
   pages,
   onPageChange,
-}: {
+}: Readonly<{
   page: number;
   totalPages: number;
   pages: Array<number | "...">;
   onPageChange: (page: number) => void;
-}) {
+}>) {
   if (totalPages <= 1) return null;
 
   return (
@@ -242,7 +242,7 @@ export function AdminPagination({
         </Button>
         {pages.map((item, index) =>
           item === "..." ? (
-            <span key={`dots-${index}`} className="px-1 text-xs text-slate-400">
+            <span key={`dots-${String(pages[index + 1] ?? "end")}`} className="px-1 text-xs text-slate-400">
               …
             </span>
           ) : (
@@ -284,13 +284,13 @@ export function AdminDialog({
   onClose,
   children,
   className,
-}: {
+}: Readonly<{
   title: string;
   description?: string;
   onClose: () => void;
   children: ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
       <div

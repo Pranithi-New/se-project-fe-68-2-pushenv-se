@@ -6,8 +6,8 @@ type UserInfo = {
 };
 
 export function getUserInfo(): UserInfo | null {
-  if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(USER_KEY);
+  if (globalThis.window === undefined) return null;
+  const raw = globalThis.window.localStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as UserInfo;
@@ -17,13 +17,13 @@ export function getUserInfo(): UserInfo | null {
 }
 
 export function setUserInfo(user: UserInfo) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(USER_KEY, JSON.stringify(user));
-  window.dispatchEvent(new Event("auth-change"));
+  if (globalThis.window === undefined) return;
+  globalThis.window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+  globalThis.window.dispatchEvent(new Event("auth-change"));
 }
 
 export function clearUserInfo() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(USER_KEY);
-  window.dispatchEvent(new Event("auth-change"));
+  if (globalThis.window === undefined) return;
+  globalThis.window.localStorage.removeItem(USER_KEY);
+  globalThis.window.dispatchEvent(new Event("auth-change"));
 }

@@ -79,14 +79,12 @@ function extractErrorMessage(err: unknown, fallback: string) {
     : fallback;
 }
 
-function InitialAvatar({ name, role }: { name: string; role: AdminAccountDetail["role"] }) {
+function InitialAvatar({ name, role }: Readonly<{ name: string; role: AdminAccountDetail["role"] }>) {
   const initial = name.trim()[0]?.toUpperCase() ?? "?";
-  const bg =
-    role === "systemAdmin"
-      ? "bg-slate-100 text-slate-700"
-      : role === "companyUser"
-        ? "bg-slate-100 text-slate-700"
-        : "bg-sky-100 text-sky-700";
+  let bg = "bg-sky-100 text-sky-700";
+  if (role === "systemAdmin" || role === "companyUser") {
+    bg = "bg-slate-100 text-slate-700";
+  }
   return (
     <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-bold", bg)}>
       {initial}
@@ -94,7 +92,7 @@ function InitialAvatar({ name, role }: { name: string; role: AdminAccountDetail[
   );
 }
 
-export function AdminUserDetailPage({ userId }: { userId: string }) {
+export function AdminUserDetailPage({ userId }: Readonly<{ userId: string }>) {
   const [user, setUser] = useState<AdminAccountDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -149,7 +147,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
     try {
       await api.delete(`/admin/accounts/${userId}`);
       toast.success("Account deleted");
-      window.location.href = "/admin/users";
+      globalThis.window.location.href = "/admin/users";
     } catch (err) {
       toast.error(extractErrorMessage(err, "Failed to delete account"));
       setDeleting(false);

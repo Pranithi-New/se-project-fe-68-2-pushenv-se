@@ -15,11 +15,11 @@ function PageButton({
   page,
   active,
   onClick,
-}: {
+}: Readonly<{
   page: number | string;
   active?: boolean;
   onClick?: () => void;
-}) {
+}>) {
   if (page === "...") {
     return <span className="px-2 text-slate-400">...</span>;
   }
@@ -45,7 +45,7 @@ export default function Pagination({
   limit,
   currentPage,
   basePath = "/events",
-}: PaginationProps) {
+}: Readonly<PaginationProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
 

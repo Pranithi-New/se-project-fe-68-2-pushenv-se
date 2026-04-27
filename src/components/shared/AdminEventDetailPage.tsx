@@ -36,7 +36,7 @@ import type { ApiResponse } from "@/types/api";
 function CompanyList({
   companies,
   onRemove,
-}: {
+}: Readonly<{
   companies: Array<{
     companyId: string;
     company: {
@@ -48,7 +48,7 @@ function CompanyList({
     };
   }>;
   onRemove: (companyId: string) => void;
-}) {
+}>) {
   const [filter, setFilter] = useState("");
   const filtered = filter
     ? companies.filter(
@@ -70,11 +70,13 @@ function CompanyList({
           className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
         />
       </div>
-      {!companies.length ? (
+      {companies.length === 0 && (
         <p className="text-sm text-slate-500">No companies assigned yet.</p>
-      ) : !filtered.length ? (
+      )}
+      {companies.length > 0 && filtered.length === 0 && (
         <p className="text-sm text-slate-500">No companies match your search.</p>
-      ) : (
+      )}
+      {companies.length > 0 && filtered.length > 0 && (
         <div className="max-h-[480px] overflow-y-auto space-y-1.5">
           {filtered.map(link => (
             <div
@@ -152,7 +154,7 @@ function formatDateInput(value: string) {
   return new Date(value).toISOString().slice(0, 10);
 }
 
-export function AdminEventDetailPage({ eventId }: { eventId: string }) {
+export function AdminEventDetailPage({ eventId }: Readonly<{ eventId: string }>) {
   const [event, setEvent] = useState<AdminEventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -231,7 +233,7 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
     try {
       await api.delete(`/admin/events/${eventId}`);
       toast.success("Event deleted");
-      window.location.href = "/admin/events";
+      globalThis.window.location.href = "/admin/events";
     } catch (err) {
       toast.error(extractErrorMessage(err, "Failed to delete event"));
       setDeleting(false);
@@ -382,9 +384,7 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
               </span>
             </div>
             <div className="px-5 py-5">
-              {!event.registrations.length ? (
-                <p className="text-sm text-slate-500">No registrations yet.</p>
-              ) : (
+              {event.registrations.length ? (
                 <div className="space-y-1.5">
                   {event.registrations.map(registration => (
                     <Link
@@ -402,6 +402,8 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
                     </Link>
                   ))}
                 </div>
+              ) : (
+                <p className="text-sm text-slate-500">No registrations yet.</p>
               )}
             </div>
           </AdminPagePanel>
@@ -495,7 +497,9 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
                     onClick={handleTogglePublish}
                     disabled={publishing}
                   >
-                    {publishing ? "Updating..." : event.isPublished ? "Unpublish" : "Publish"}
+                    {publishing && "Updating..."}
+                    {!publishing && event.isPublished && "Unpublish"}
+                    {!publishing && !event.isPublished && "Publish"}
                   </Button>
                   <Button
                     type="submit"
@@ -533,7 +537,7 @@ export function AdminEventDetailPage({ eventId }: { eventId: string }) {
       <ConfirmModal
         open={!!confirmRemoveId}
         onClose={() => setConfirmRemoveId(null)}
-        onConfirm={() => handleRemoveCompany(confirmRemoveId!)}
+        onConfirm={() => { if (confirmRemoveId) handleRemoveCompany(confirmRemoveId); }}
         title="Remove company"
         description="Remove this company from the event? They will no longer appear as a participant."
         confirmLabel="Remove"

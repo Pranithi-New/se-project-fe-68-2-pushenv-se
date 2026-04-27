@@ -68,16 +68,16 @@ export function Navbar() {
       }
     };
 
-    window.addEventListener("pageshow", handlePageShow);
+    globalThis.window.addEventListener("pageshow", handlePageShow);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("keydown", handleEscape);
-    window.addEventListener("auth-change", checkAuth);
+    globalThis.window.addEventListener("auth-change", checkAuth);
 
     return () => {
-      window.removeEventListener("pageshow", handlePageShow);
+      globalThis.window.removeEventListener("pageshow", handlePageShow);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("keydown", handleEscape);
-      window.removeEventListener("auth-change", checkAuth);
+      globalThis.window.removeEventListener("auth-change", checkAuth);
     };
   }, [pathname]);
 

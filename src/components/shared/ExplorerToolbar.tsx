@@ -22,7 +22,7 @@ export default function ExplorerToolbar({
   total,
   searchPlaceholder,
   sortOptions,
-}: ExplorerToolbarProps) {
+}: Readonly<ExplorerToolbarProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();

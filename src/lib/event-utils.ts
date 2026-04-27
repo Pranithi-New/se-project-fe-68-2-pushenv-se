@@ -1,4 +1,12 @@
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/+$/, "");
+const getBaseUrl = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  while (url.endsWith("/")) {
+    url = url.slice(0, -1);
+  }
+  return url;
+};
+
+const BASE_URL = getBaseUrl();
 
 export function resolveAssetUrl(value?: string | null): string | null {
   if (!value) return null;

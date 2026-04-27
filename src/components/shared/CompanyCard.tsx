@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { type Company } from "@/types/company";
 
-export function CompanyCard({ company }: { company: Company }) {
+export function CompanyCard({ company }: Readonly<{ company: Company }>) {
   return (
     <Link
       href={`/companies/${company.id}`}
