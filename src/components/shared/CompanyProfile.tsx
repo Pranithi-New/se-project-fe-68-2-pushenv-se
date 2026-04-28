@@ -21,8 +21,6 @@ type CompanyProfile = {
   updatedAt: string;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getErrorMessage(err: unknown): string {
@@ -34,10 +32,7 @@ function getErrorMessage(err: unknown): string {
 
 function getLogoUrl(logo: string | null | undefined): string {
   if (!logo) return "";
-  if (logo.startsWith("http") || logo.startsWith("/")) {
-    return resolveAssetUrl(logo) ?? "";
-  }
-  return `${BASE_URL}${logo}`;
+  return resolveAssetUrl(logo) ?? "";
 }
 
 function getWebsiteUrl(website: string | null | undefined): string {

@@ -1,16 +1,18 @@
-const getBaseUrl = () => {
-  let url = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-  while (url.endsWith("/")) {
-    url = url.slice(0, -1);
-  }
-  return url;
-};
-
-const BASE_URL = getBaseUrl();
-
 export function resolveAssetUrl(value?: string | null): string | null {
   if (!value) return null;
-  return value.startsWith("http") ? value : `${BASE_URL}${value}`;
+  // return if it's already absolute URL
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  // clean up leading slashes to ensure it starts with exactly one slash
+  let cleanPath = value;
+  while (cleanPath.startsWith("/")) {
+    cleanPath = cleanPath.slice(1);
+  }
+
+  // proxy /uploads/... to backend server dynamically
+  return `/${cleanPath}`;
 }
 
 export function formatDate(value: string): string {
@@ -28,5 +30,8 @@ export function formatDateRange(startValue: string, endValue: string): string {
 }
 
 export function formatTime(value: string): string {
-  return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

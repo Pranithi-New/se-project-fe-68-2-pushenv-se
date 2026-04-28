@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getUserInfo } from "@/lib/auth";
 
 const features = [
   {
@@ -19,6 +23,21 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  useEffect(() => {
+    const user = getUserInfo();
+    setIsSignedIn(!!user);
+
+    const handleAuthChange = () => {
+      const updatedUser = getUserInfo();
+      setIsSignedIn(!!updatedUser);
+    };
+
+    globalThis.window.addEventListener("auth-change", handleAuthChange);
+    return () => globalThis.window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-20 px-6 py-24">
@@ -31,12 +50,20 @@ export default function LandingPage() {
             Public auth pages, role-based dashboards, typed API helpers, and shared UI building blocks — all in one place.
           </p>
           <div className="flex gap-3">
-            <Button size="lg" asChild>
-              <Link href="/signup">Get started</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/signin">Sign in</Link>
-            </Button>
+            {isSignedIn ? (
+              <Button size="lg" asChild>
+                <Link href="/events">Explore Events</Link>
+              </Button>
+            ) : (
+              <>
+                <Button size="lg" asChild>
+                  <Link href="/signup">Get started</Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/signin">Sign in</Link>
+                </Button>
+              </>
+            )}
           </div>
         </section>
 

@@ -1,8 +1,24 @@
 import { clearUserInfo } from "@/lib/auth";
 
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").endsWith("/")
-  ? `${(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").slice(0, -1)}/api/v1`
-  : `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/v1`;
+const getBaseUrl = () => {
+  // 1. If we're in the browser, always use the relative Next.js proxy path
+  if (typeof window !== "undefined") {
+    return "/api/backend/api/v1";
+  }
+  
+  // 2. If we're on the server, use the BACKEND_URL env
+  if (process.env.BACKEND_URL) {
+    return process.env.BACKEND_URL.endsWith("/") 
+      ? `${process.env.BACKEND_URL.slice(0, -1)}/api/v1`
+      : `${process.env.BACKEND_URL}/api/v1`;
+  }
+  
+  // 3. Fallback for local development
+  const isDocker = process.env.IS_DOCKER === "true";
+  return isDocker ? "http://backend:4000/api/v1" : "http://localhost:4000/api/v1";
+};
+
+const BASE_URL = getBaseUrl();
 
 let csrfTokenCache: string | null = null;
 
@@ -26,7 +42,10 @@ type FetchOptions = RequestInit & {
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const { params, ...init } = options;
 
-  const url = new URL(BASE_URL + path);
+  // Use window.location.origin as base for relative URLs in the browser.
+  // On the server, BASE_URL is absolute, so the dummy base is ignored by how new URL work.
+  const dummyBase = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+  const url = new URL(BASE_URL + path, dummyBase);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
