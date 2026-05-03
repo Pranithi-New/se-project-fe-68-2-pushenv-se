@@ -131,6 +131,24 @@ export function AdminCompanyDetailPage({
       : "";
   }, [company?.logo]);
 
+  const websiteUrl = useMemo(() => {
+    const rawWebsite = company?.website?.trim();
+    if (!rawWebsite) return "";
+
+    try {
+      const normalized =
+        rawWebsite.startsWith("http://") || rawWebsite.startsWith("https://")
+          ? rawWebsite
+          : `https://${rawWebsite}`;
+      const parsed = new URL(normalized);
+      return parsed.protocol === "http:" || parsed.protocol === "https:"
+        ? parsed.toString()
+        : "";
+    } catch {
+      return "";
+    }
+  }, [company?.website]);
+
   if (loading) return <AdminLoadingState label="Loading company..." />;
 
   if (!company) {
@@ -305,19 +323,19 @@ export function AdminCompanyDetailPage({
                   <p className="text-[11px] font-semibold uppercase text-slate-400">
                     Website
                   </p>
-                  {company.website ? (
+                  {websiteUrl ? (
                     <a
-                      href={
-                        company.website.startsWith("http://") || company.website.startsWith("https://")
-                          ? company.website
-                          : `https://${company.website}`
-                      }
+                      href={websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-1 inline-block break-all text-sm text-slate-900 underline-offset-4 hover:underline"
                     >
                       {company.website}
                     </a>
+                  ) : company.website ? (
+                    <p className="mt-1 break-all text-sm text-slate-500">
+                      {company.website}
+                    </p>
                   ) : (
                     <p className="mt-1 text-sm text-slate-500">Not set</p>
                   )}
