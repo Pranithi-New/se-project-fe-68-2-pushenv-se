@@ -41,6 +41,24 @@ type CompanyDetail = CompanyProfile & {
   }[];
 };
 
+function getSafeWebsiteUrl(website: string | null | undefined): string {
+  const rawWebsite = website?.trim();
+  if (!rawWebsite) return "";
+
+  try {
+    const normalized =
+      rawWebsite.startsWith("http://") || rawWebsite.startsWith("https://")
+        ? rawWebsite
+        : `https://${rawWebsite}`;
+    const parsed = new URL(normalized);
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? parsed.toString()
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 export function AdminCompanyDetailPage({
   companyId,
 }: Readonly<{ companyId: string }>) {
@@ -131,23 +149,7 @@ export function AdminCompanyDetailPage({
       : "";
   }, [company?.logo]);
 
-  const websiteUrl = useMemo(() => {
-    const rawWebsite = company?.website?.trim();
-    if (!rawWebsite) return "";
-
-    try {
-      const normalized =
-        rawWebsite.startsWith("http://") || rawWebsite.startsWith("https://")
-          ? rawWebsite
-          : `https://${rawWebsite}`;
-      const parsed = new URL(normalized);
-      return parsed.protocol === "http:" || parsed.protocol === "https:"
-        ? parsed.toString()
-        : "";
-    } catch {
-      return "";
-    }
-  }, [company?.website]);
+  const websiteUrl = getSafeWebsiteUrl(company?.website);
 
   if (loading) return <AdminLoadingState label="Loading company..." />;
 
