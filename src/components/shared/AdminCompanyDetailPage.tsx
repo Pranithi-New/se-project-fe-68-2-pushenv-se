@@ -4,7 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
-import { ArrowLeft, BriefcaseBusiness, Building2, CalendarDays, Globe, Mail, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  BriefcaseBusiness,
+  Building2,
+  CalendarDays,
+  Globe,
+  Mail,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   AdminEmptyState,
@@ -33,7 +41,9 @@ type CompanyDetail = CompanyProfile & {
   }[];
 };
 
-export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: string }>) {
+export function AdminCompanyDetailPage({
+  companyId,
+}: Readonly<{ companyId: string }>) {
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +57,9 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
     try {
       const [companyRes, jobsRes] = await Promise.all([
         api.get<ApiResponse<CompanyDetail>>(`/companies/${companyId}`),
-        api.get<ApiResponse<JobListing[]>>(`/admin/companies/${companyId}/jobs`),
+        api.get<ApiResponse<JobListing[]>>(
+          `/admin/companies/${companyId}/jobs`,
+        ),
       ]);
       setCompany(companyRes.data);
       setJobs(jobsRes.data);
@@ -112,7 +124,11 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
   const logoUrl = useMemo(() => {
     const url = resolveAssetUrl(company?.logo);
     if (!url) return "";
-    return (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) ? url : "";
+    return url.startsWith("http://") ||
+      url.startsWith("https://") ||
+      url.startsWith("/")
+      ? url
+      : "";
   }, [company?.logo]);
 
   if (loading) return <AdminLoadingState label="Loading company..." />;
@@ -145,14 +161,24 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
       <div className="flex items-center gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
           {logoUrl ? (
-            <Image src={logoUrl} alt={company.companyUser.name} className="h-full w-full object-cover" width={44} height={44} />
+            <Image
+              src={logoUrl}
+              alt={company.companyUser.name}
+              className="h-full w-full object-cover"
+              width={44}
+              height={44}
+            />
           ) : (
             <Building2 className="h-5 w-5 text-slate-400" />
           )}
         </div>
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{company.companyUser.name}</h1>
-          <p className="mt-0.5 text-sm text-slate-500">{company.companyUser.email}</p>
+          <h1 className="text-xl font-semibold text-slate-900">
+            {company.companyUser.name}
+          </h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {company.companyUser.email}
+          </p>
         </div>
       </div>
 
@@ -172,24 +198,32 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
           <AdminPagePanel>
             <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
               <CalendarDays className="h-4 w-4 text-slate-400" />
-              <h2 className="text-sm font-semibold text-slate-900">Participated events</h2>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Participated events
+              </h2>
             </div>
             <div className="px-5 py-5">
               {company.eventLinks?.length ? (
                 <div className="grid gap-2 md:grid-cols-2">
-                  {company.eventLinks.map(link => (
+                  {company.eventLinks.map((link) => (
                     <Link
                       key={link.eventId}
                       href={`/admin/events/${link.event.id}`}
                       className="rounded-lg border border-slate-100 px-4 py-3 transition-colors hover:bg-slate-50"
                     >
-                      <p className="text-sm font-medium text-slate-900">{link.event.name}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{link.event.location}</p>
+                      <p className="text-sm font-medium text-slate-900">
+                        {link.event.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {link.event.location}
+                      </p>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">Not linked to any events yet.</p>
+                <p className="text-sm text-slate-500">
+                  Not linked to any events yet.
+                </p>
               )}
             </div>
           </AdminPagePanel>
@@ -197,16 +231,25 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
           <AdminPagePanel>
             <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
               <BriefcaseBusiness className="h-4 w-4 text-slate-400" />
-              <h2 className="text-sm font-semibold text-slate-900">Job listings</h2>
-              <span className="ml-auto text-xs font-medium tabular-nums text-slate-400">{jobs.length}</span>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Job listings
+              </h2>
+              <span className="ml-auto text-xs font-medium tabular-nums text-slate-400">
+                {jobs.length}
+              </span>
             </div>
             <div className="px-5 py-5">
               {jobs.length ? (
                 <div className="space-y-2">
-                  {jobs.map(job => (
-                    <div key={job.id} className="rounded-lg border border-slate-100 px-4 py-3">
+                  {jobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="rounded-lg border border-slate-100 px-4 py-3"
+                    >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-medium text-slate-900">{job.title}</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {job.title}
+                        </p>
                         <Badge
                           variant="outline"
                           className={cn(
@@ -222,7 +265,11 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
                       <p className="mt-0.5 text-xs text-slate-500">
                         {job.type} · {job.location}
                       </p>
-                      {job.salary ? <p className="mt-1 text-xs text-slate-600">{job.salary}</p> : null}
+                      {job.salary ? (
+                        <p className="mt-1 text-xs text-slate-600">
+                          {job.salary}
+                        </p>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -236,20 +283,28 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
         <div className="space-y-4">
           <AdminPagePanel>
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-sm font-semibold text-slate-900">Quick facts</h2>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Quick facts
+              </h2>
             </div>
             <div className="space-y-4 px-5 py-5">
               <div className="flex items-start gap-3">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase text-slate-400">Email</p>
-                  <p className="mt-1 break-all text-sm text-slate-700">{company.companyUser.email}</p>
+                  <p className="text-[11px] font-semibold uppercase text-slate-400">
+                    Email
+                  </p>
+                  <p className="mt-1 break-all text-sm text-slate-700">
+                    {company.companyUser.email}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Globe className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase text-slate-400">Website</p>
+                  <p className="text-[11px] font-semibold uppercase text-slate-400">
+                    Website
+                  </p>
                   {company.website ? (
                     <a
                       href={
@@ -271,7 +326,9 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
               <div className="flex items-start gap-3">
                 <BriefcaseBusiness className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase text-slate-400">Total jobs</p>
+                  <p className="text-[11px] font-semibold uppercase text-slate-400">
+                    Total jobs
+                  </p>
                   <p className="mt-1 text-sm text-slate-700">{jobs.length}</p>
                 </div>
               </div>
@@ -281,26 +338,39 @@ export function AdminCompanyDetailPage({ companyId }: Readonly<{ companyId: stri
           <AdminPagePanel>
             <form onSubmit={handleSave}>
               <div className="border-b border-slate-100 px-5 py-4">
-                <h2 className="text-sm font-semibold text-slate-900">Edit profile</h2>
+                <h2 className="text-sm font-semibold text-slate-900">
+                  Edit profile
+                </h2>
               </div>
               <div className="space-y-4 px-5 py-5">
                 <div>
-                  <Label className="mb-1.5 block text-xs font-medium text-slate-600">Website</Label>
+                  <Label className="mb-1.5 block text-xs font-medium text-slate-600">
+                    Website
+                  </Label>
                   <div className="relative">
                     <Globe className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                     <Input
                       value={form.website}
-                      onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, website: e.target.value }))
+                      }
                       placeholder="https://example.com"
-                      className={cn("h-9 rounded-lg pl-9 text-sm", adminInputClassName)}
+                      className={cn(
+                        "h-9 rounded-lg pl-9 text-sm",
+                        adminInputClassName,
+                      )}
                     />
                   </div>
                 </div>
                 <div>
-                  <Label className="mb-1.5 block text-xs font-medium text-slate-600">Description</Label>
+                  <Label className="mb-1.5 block text-xs font-medium text-slate-600">
+                    Description
+                  </Label>
                   <textarea
                     value={form.description}
-                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, description: e.target.value }))
+                    }
                     placeholder="Describe the company, team, or hiring focus"
                     className={adminTextareaClassName}
                   />
